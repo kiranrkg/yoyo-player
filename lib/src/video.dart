@@ -239,6 +239,14 @@ class _YoYoPlayerState extends State<YoYoPlayer>
   }
 
   @override
+  void dispose() {
+    printLog("-----------> dispose <-----------");
+    m3u8clean();
+    actionWhenVideoActive(controller?.dispose);
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     printLog("-----------> build <-----------");
     final videoChildrens = <Widget>[
