@@ -214,7 +214,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
             color: Colors.black,
             child: Center(
                 child: AspectRatio(
-              aspectRatio: controller.value.aspectRatio,
+              aspectRatio: controller?.value?.aspectRatio,
               child: VideoPlayer(controller),
             )),
           ),
@@ -226,7 +226,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
       aspectRatio: fullscreen
           ? calculateAspectRatio(context, screenSize)
           : widget.aspectRatio,
-      child: controller.value.initialized
+      child: controller?.value?.initialized
           ? Stack(children: videoChildrens)
           : widget.videoLoadingStyle.loading,
     );
@@ -495,15 +495,17 @@ class _YoYoPlayerState extends State<YoYoPlayer>
 
 // video Listener
   void listener() async {
-    if (controller.value.initialized && controller.value.isPlaying) {
+    if ((controller?.value?.initialized ?? false) &&
+        (controller?.value?.isPlaying ?? false)) {
       if (!await Wakelock.isEnabled) {
         await Wakelock.enable();
       }
       setState(() {
-        videoDuration = convertDurationToString(controller.value.duration);
-        videoSeek = convertDurationToString(controller.value.position);
-        videoSeekSecond = controller.value.position.inSeconds.toDouble();
-        videoDurationSecond = controller.value.duration.inSeconds.toDouble();
+        videoDuration = convertDurationToString(controller?.value?.duration);
+        videoSeek = convertDurationToString(controller?.value?.position);
+        videoSeekSecond = controller?.value?.position?.inSeconds?.toDouble();
+        videoDurationSecond =
+            controller?.value?.duration?.inSeconds?.toDouble();
       });
     } else {
       if (await Wakelock.isEnabled) {
@@ -516,7 +518,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
   void createHideControlbarTimer() {
     clearHideControlbarTimer();
     showTime = Timer(Duration(milliseconds: 5000), () {
-      if (controller != null && controller.value.isPlaying) {
+      if (controller != null && controller?.value?.isPlaying) {
         if (showMeau) {
           setState(() {
             showMeau = false;
@@ -553,7 +555,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
 
   void togglePlay() {
     createHideControlbarTimer();
-    if (controller.value.isPlaying) {
+    if (controller?.value?.isPlaying) {
       controller.pause();
     } else {
       controller.play();
@@ -566,7 +568,12 @@ class _YoYoPlayerState extends State<YoYoPlayer>
       print(
           "--- Player Status ---\nplay url : $url\noffline : $offline\n--- start playing –––");
 
-      if (playtype == "MKV") {
+      if (playtype == "MP4") {
+        // Play MP4
+        widget.yoyoController.controller =
+            VideoPlayerController.network(url, formatHint: VideoFormat.other)
+              ..initialize();
+      } else if (playtype == "MKV") {
         widget.yoyoController.controller =
             VideoPlayerController.network(url, formatHint: VideoFormat.dash)
               ..initialize();
@@ -576,10 +583,6 @@ class _YoYoPlayerState extends State<YoYoPlayer>
               ..initialize()
                   .then((_) => setState(() => hasInitError = false))
                   .catchError((e) => setState(() => hasInitError = true));
-      } else {
-        widget.yoyoController.controller =
-            VideoPlayerController.network(url, formatHint: VideoFormat.other)
-              ..initialize();
       }
     } else {
       print(
@@ -616,7 +619,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
   }
 
   void onselectquality(M3U8pass data) async {
-    controller.value.isPlaying ? controller.pause() : controller.pause();
+    controller?.value?.isPlaying ? controller.pause() : controller.pause();
     if (data.dataquality == "Auto") {
       videoControllSetup(data.dataurl);
     } else {
