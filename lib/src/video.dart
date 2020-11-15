@@ -12,6 +12,7 @@ import 'package:http/http.dart' as http;
 import 'package:yoyo_player/src/utils/utils.dart';
 import 'package:yoyo_player/src/widget/widget_bottombar.dart';
 import '../yoyo_player.dart';
+import 'event_player.dart';
 import 'model/audio.dart';
 import 'model/m3u8.dart';
 import 'model/m3u8s.dart';
@@ -98,9 +99,9 @@ class YoYoPlayer extends StatefulWidget {
 
 class _YoYoPlayerState extends State<YoYoPlayer>
     with SingleTickerProviderStateMixin {
-  // VideoPlayerController get controller => widget.yoyoController.controller;
   VideoPlayerController controller;
-
+  // event player
+  final EventPlayer _event = EventPlayer();
   //vieo play type (hls,mp4,mkv,offline)
   String playtype;
   // Animation Controller
@@ -199,7 +200,29 @@ class _YoYoPlayerState extends State<YoYoPlayer>
       DeviceOrientation.landscapeLeft,
       DeviceOrientation.landscapeRight,
     ]);
+    exportEventPlayer();
     Screen.keepOn(true);
+  }
+
+  void exportEventPlayer() {
+    printLog("-----------> exportEventPlayer <-----------");
+    _event.play = () {
+      createHideControlbarTimer();
+      controller?.play();
+    };
+    _event.pause = () {
+      createHideControlbarTimer();
+      controller?.pause();
+    };
+    _event.mute = () {
+      controller.setVolume(0);
+    };
+    _event.unmute = () {
+      controller.setVolume(1);
+    };
+    _event.isPlaying = controller?.value?.isPlaying ?? false;
+    _event.notNullPlayer =
+        controller != null && (controller?.value?.initialized ?? false);
   }
 
   @override
@@ -654,7 +677,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
 
   void onselectquality(M3U8pass data) async {
     printLog("-----------> onselectquality <-----------");
-    controller?.value?.isPlaying ? controller.pause() : controller.pause();
+    controller.pause();
     if (data.dataquality == "Auto") {
       videoControllSetup(data.dataurl);
     } else {
