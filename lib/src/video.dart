@@ -212,6 +212,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
     printLog("-----------> exportEventPlayer <-----------");
     _event.play = () => actionWhenVideoActive(() {
           createHideControlbarTimer();
+          print("----------->> Play Vide");
           controller?.play();
           _disableListener = false;
           if (mounted) {
@@ -221,6 +222,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
     _event.pause = () => actionWhenVideoActive(() {
           _disableListener = true;
           createHideControlbarTimer();
+          print("----------->> Pause Vide");
           controller?.pause();
           if (mounted) {
             setState(() {});
