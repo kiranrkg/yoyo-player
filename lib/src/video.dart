@@ -216,6 +216,12 @@ class _YoYoPlayerState extends State<YoYoPlayer>
         });
     _event.mute = () => actionWhenVideoActive(() => controller.setVolume(0));
     _event.unmute = () => actionWhenVideoActive(() => controller.setVolume(1));
+
+    _event.dispose = () {
+      printLog("-----------> disposeEvent <-----------");
+      m3u8clean();
+      controller?.dispose();
+    };
     _event.isPlaying = controller?.value?.isPlaying ?? false;
     _event.notNullPlayer =
         controller != null && (controller?.value?.initialized ?? false);
@@ -229,14 +235,6 @@ class _YoYoPlayerState extends State<YoYoPlayer>
     } else {
       printLog("-----------> Deactive");
     }
-  }
-
-  @override
-  void dispose() {
-    printLog("-----------> dispose <-----------");
-    m3u8clean();
-    controller.dispose();
-    super.dispose();
   }
 
   @override

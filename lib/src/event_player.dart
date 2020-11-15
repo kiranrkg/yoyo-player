@@ -5,6 +5,7 @@ class EventPlayer {
   Function() pause;
   Function() mute;
   Function() unmute;
+  Function() dispose;
   bool isPlaying;
   bool notNullPlayer;
 
