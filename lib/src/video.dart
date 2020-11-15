@@ -57,6 +57,9 @@ class YoYoPlayer extends StatefulWidget {
   /// video Type
   final VideoCallback<String> onpeningvideo;
 
+  // Vieo Player Controller
+  final VideoPlayerController controller;
+
   ///
   /// ```dart
   /// YoYoPlayer(
@@ -72,6 +75,7 @@ class YoYoPlayer extends StatefulWidget {
   /// ```
   YoYoPlayer({
     Key key,
+    @required this.controller,
     @required this.url,
     @required this.aspectRatio,
     this.videoStyle,
@@ -86,6 +90,7 @@ class YoYoPlayer extends StatefulWidget {
 
 class _YoYoPlayerState extends State<YoYoPlayer>
     with SingleTickerProviderStateMixin {
+  VideoPlayerController get controller => widget.controller;
   //vieo play type (hls,mp4,mkv,offline)
   String playtype;
   // Animation Controller
@@ -94,8 +99,6 @@ class _YoYoPlayerState extends State<YoYoPlayer>
   Animation<double> controlTopBarAnimation;
   // Video Bottom Bar Animation
   Animation<double> controlBottomBarAnimation;
-  // Vieo Player Controller
-  VideoPlayerController controller;
   // Video init error defult :false
   bool hasInitError = false;
   // Video Total Time duration
@@ -560,10 +563,13 @@ class _YoYoPlayerState extends State<YoYoPlayer>
 
       if (playtype == "MP4") {
         // Play MP4
-        controller = VideoPlayerController.network(url,formatHint: VideoFormat.other)..initialize();
+        controller =
+            VideoPlayerController.network(url, formatHint: VideoFormat.other)
+              ..initialize();
       } else if (playtype == "MKV") {
         controller =
-            VideoPlayerController.network(url,formatHint: VideoFormat.dash)..initialize();
+            VideoPlayerController.network(url, formatHint: VideoFormat.dash)
+              ..initialize();
       } else if (playtype == "HLS") {
         controller =
             VideoPlayerController.network(url, formatHint: VideoFormat.hls)
