@@ -149,6 +149,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
 
   void printLog(log) {
     triggerMounted();
+
     if (widget.showLog) {
       print("[YoYo Player][Controller:${controller != null}] $log");
     }
@@ -218,11 +219,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
     _event.mute = () => actionWhenVideoActive(() => controller.setVolume(0));
     _event.unmute = () => actionWhenVideoActive(() => controller.setVolume(1));
 
-    _event.dispose = () {
-      printLog("-----------> disposeEvent <-----------");
-      m3u8clean();
-      actionWhenVideoActive(controller?.dispose);
-    };
+    _event.dispose = disposeVideo;
     _event.isPlaying = controller?.value?.isPlaying ?? false;
     _event.notNullPlayer =
         controller != null && (controller?.value?.initialized ?? false);
@@ -238,14 +235,19 @@ class _YoYoPlayerState extends State<YoYoPlayer>
     }
   }
 
-  @override
-  void dispose() {
-    printLog("-----------> dispose <-----------");
+  void disposeVideo() {
+    printLog("-----------> disposeVideo <-----------");
     m3u8clean();
     actionWhenVideoActive(() {
       controller?.dispose();
       controller = null;
     });
+  }
+
+  @override
+  void dispose() {
+    printLog("-----------> dispose <-----------");
+    disposeVideo();
     super.dispose();
   }
 
