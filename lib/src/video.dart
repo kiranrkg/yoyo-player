@@ -149,7 +149,10 @@ class _YoYoPlayerState extends State<YoYoPlayer>
 
   void printLog(log) {
     if (widget.showLog) {
-      print("[YoYo Player][Controller:${controller != null}] $log");
+      final isPlaying = (controller?.value?.isPlaying ?? false)
+          ? '[isPlaying:${controller.value.isPlaying}]'
+          : '[Player Not Available]';
+      print("[YoYo Player][Controller:${controller != null}]$isPlaying $log");
     }
   }
 
@@ -207,12 +210,10 @@ class _YoYoPlayerState extends State<YoYoPlayer>
   void exportEventPlayer() {
     printLog("-----------> exportEventPlayer <-----------");
     _event.play = () => actionWhenVideoActive(() {
-          print("-----> Play Video");
           createHideControlbarTimer();
           controller?.play();
         });
     _event.pause = () => actionWhenVideoActive(() {
-          print("-----> Pause Video");
           createHideControlbarTimer();
           controller?.pause();
         });
