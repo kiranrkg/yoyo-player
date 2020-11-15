@@ -639,7 +639,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
   }
 
   void localm3u8play(File file) {
-    controller = VideoPlayerController.file(
+    widget.yoyoController.controller = VideoPlayerController.file(
       file,
     )..initialize()
         .then((_) => setState(() => hasInitError = false))
