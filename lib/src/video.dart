@@ -569,26 +569,32 @@ class _YoYoPlayerState extends State<YoYoPlayer>
   }
 
 // video Listener
+  Timer timeListenner;
   void listener() async {
     if (_disableListener) return;
     printLog("-----------> listener <-----------");
-    if ((controller?.value?.initialized ?? false) &&
-        (controller?.value?.isPlaying ?? false)) {
-      if (!await Wakelock.enabled) {
-        await Wakelock.enable();
-      }
-      videoDuration = convertDurationToString(controller?.value?.duration);
-      videoSeek = convertDurationToString(controller?.value?.position);
-      videoSeekSecond = controller?.value?.position?.inSeconds?.toDouble();
-      videoDurationSecond = controller?.value?.duration?.inSeconds?.toDouble();
-      if (!mounted) return;
-      setState(() {});
-    } else {
-      if (await Wakelock.enabled) {
-        if (!mounted) return;
-        triggerMounted();
-        setState(() {});
-      }
+    if (timeListenner == null) {
+      timeListenner = Timer(Duration(milliseconds: 600), () async {
+        if ((controller?.value?.initialized ?? false) &&
+            (controller?.value?.isPlaying ?? false)) {
+          if (!await Wakelock.enabled) {
+            await Wakelock.enable();
+          }
+          videoDuration = convertDurationToString(controller?.value?.duration);
+          videoSeek = convertDurationToString(controller?.value?.position);
+          videoSeekSecond = controller?.value?.position?.inSeconds?.toDouble();
+          videoDurationSecond =
+              controller?.value?.duration?.inSeconds?.toDouble();
+          if (!mounted) return;
+          setState(() {});
+        } else {
+          if (await Wakelock.enabled) {
+            if (!mounted) return;
+            setState(() {});
+          }
+        }
+        timeListenner = null;
+      });
     }
   }
 
