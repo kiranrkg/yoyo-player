@@ -261,17 +261,9 @@ class _YoYoPlayerState extends State<YoYoPlayer>
         onDoubleTap: () {
           togglePlay();
         },
-        child: ClipRect(
-          child: Container(
-            width: double.infinity,
-            height: double.infinity,
-            color: Colors.black,
-            child: Center(
-                child: AspectRatio(
-              aspectRatio: controller?.value?.aspectRatio ?? 16 / 9,
-              child: VideoPlayer(controller),
-            )),
-          ),
+        child: AspectRatio(
+          aspectRatio: controller?.value?.aspectRatio ?? 16 / 9,
+          child: VideoPlayer(controller),
         ),
       ),
     ];
@@ -552,7 +544,6 @@ class _YoYoPlayerState extends State<YoYoPlayer>
     } catch (e) {
       printLog("-----> bug render video M3U8 $e");
     }
-
     return null;
   }
 
@@ -576,11 +567,11 @@ class _YoYoPlayerState extends State<YoYoPlayer>
       videoSeek = convertDurationToString(controller?.value?.position);
       videoSeekSecond = controller?.value?.position?.inSeconds?.toDouble();
       videoDurationSecond = controller?.value?.duration?.inSeconds?.toDouble();
-      triggerMounted();
+      if (!mounted) return;
       setState(() {});
     } else {
       if (await Wakelock.enabled) {
-        await Wakelock.disable();
+        if (!mounted) return;
         triggerMounted();
         setState(() {});
       }
