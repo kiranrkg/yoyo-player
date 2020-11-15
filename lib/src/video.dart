@@ -242,7 +242,10 @@ class _YoYoPlayerState extends State<YoYoPlayer>
   void dispose() {
     printLog("-----------> dispose <-----------");
     m3u8clean();
-    actionWhenVideoActive(controller?.dispose);
+    actionWhenVideoActive(() {
+      controller?.dispose();
+      controller = null;
+    });
     super.dispose();
   }
 
