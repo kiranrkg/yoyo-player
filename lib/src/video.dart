@@ -414,12 +414,17 @@ class _YoYoPlayerState extends State<YoYoPlayer>
         }
       },
     );
-    if (m3u8Content == null && video != null) {
-      http.Response response = await http.get(video);
-      if (response.statusCode == 200) {
-        m3u8Content = utf8.decode(response.bodyBytes);
+    try {
+      if (m3u8Content == null && video != null) {
+        http.Response response = await http.get(video);
+        if (response.statusCode == 200) {
+          m3u8Content = utf8.decode(response.bodyBytes);
+        }
       }
+    } catch (e) {
+      print("-----> bug render video M3U8 $e");
     }
+
     List<RegExpMatch> matches = regExp.allMatches(m3u8Content).toList();
     List<RegExpMatch> audioMatches =
         regExpAudio.allMatches(m3u8Content).toList();
