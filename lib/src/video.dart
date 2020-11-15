@@ -20,6 +20,10 @@ import 'widget/top_chip.dart';
 
 typedef VideoCallback<T> = void Function(T t);
 
+class YoyoPlayerController {
+  VideoPlayerController controller;
+}
+
 class YoYoPlayer extends StatefulWidget {
   ///Video[source],
   ///```dart
@@ -58,7 +62,7 @@ class YoYoPlayer extends StatefulWidget {
   final VideoCallback<String> onpeningvideo;
 
   // Vieo Player Controller
-  final VideoPlayerController controller;
+  final YoyoPlayerController yoyoController;
 
   ///
   /// ```dart
@@ -75,7 +79,7 @@ class YoYoPlayer extends StatefulWidget {
   /// ```
   YoYoPlayer({
     Key key,
-    @required this.controller,
+    @required this.yoyoController,
     @required this.url,
     @required this.aspectRatio,
     this.videoStyle,
@@ -90,7 +94,7 @@ class YoYoPlayer extends StatefulWidget {
 
 class _YoYoPlayerState extends State<YoYoPlayer>
     with SingleTickerProviderStateMixin {
-  VideoPlayerController get controller => widget.controller;
+  VideoPlayerController get controller => widget.yoyoController.controller;
   //vieo play type (hls,mp4,mkv,offline)
   String playtype;
   // Animation Controller
@@ -563,15 +567,15 @@ class _YoYoPlayerState extends State<YoYoPlayer>
 
       if (playtype == "MP4") {
         // Play MP4
-        controller =
+        widget.yoyoController.controller =
             VideoPlayerController.network(url, formatHint: VideoFormat.other)
               ..initialize();
       } else if (playtype == "MKV") {
-        controller =
+        widget.yoyoController.controller =
             VideoPlayerController.network(url, formatHint: VideoFormat.dash)
               ..initialize();
       } else if (playtype == "HLS") {
-        controller =
+        widget.yoyoController.controller =
             VideoPlayerController.network(url, formatHint: VideoFormat.hls)
               ..initialize()
                   .then((_) => setState(() => hasInitError = false))
@@ -580,7 +584,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
     } else {
       print(
           "--- Player Status ---\nplay url : $url\noffline : $offline\n--- start playing –––");
-      controller = VideoPlayerController.file(File(url))
+      widget.yoyoController.controller = VideoPlayerController.file(File(url))
         ..initialize()
             .then((value) => setState(() => hasInitError = false))
             .catchError((e) => setState(() => hasInitError = true));
