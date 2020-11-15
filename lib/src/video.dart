@@ -214,7 +214,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
             color: Colors.black,
             child: Center(
                 child: AspectRatio(
-              aspectRatio: controller?.value?.aspectRatio,
+              aspectRatio: controller?.value?.aspectRatio ?? 16 / 9,
               child: VideoPlayer(controller),
             )),
           ),
@@ -225,8 +225,8 @@ class _YoYoPlayerState extends State<YoYoPlayer>
     return AspectRatio(
       aspectRatio: fullscreen
           ? calculateAspectRatio(context, screenSize)
-          : widget.aspectRatio,
-      child: controller?.value?.initialized
+          : widget.aspectRatio ?? 16 / 9,
+      child: (controller?.value?.initialized ?? false)
           ? Stack(children: videoChildrens)
           : widget.videoLoadingStyle.loading,
     );
