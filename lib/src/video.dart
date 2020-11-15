@@ -146,6 +146,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
   Timer showTime;
   //Current ScreenSize
   Size get screenSize => MediaQuery.of(context).size;
+  bool _disableListener = false;
 
   void printLog(log) {
     if (widget.showLog) {
@@ -212,8 +213,14 @@ class _YoYoPlayerState extends State<YoYoPlayer>
     _event.play = () => actionWhenVideoActive(() {
           createHideControlbarTimer();
           controller?.play();
+          setState(() {
+            _disableListener = false;
+          });
         });
     _event.pause = () => actionWhenVideoActive(() {
+          setState(() {
+            _disableListener = true;
+          });
           createHideControlbarTimer();
           controller?.pause();
         });
@@ -560,6 +567,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
 
 // video Listener
   void listener() async {
+    if (_disableListener) return;
     printLog("-----------> listener <-----------");
     if ((controller?.value?.initialized ?? false) &&
         (controller?.value?.isPlaying ?? false)) {
