@@ -201,6 +201,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
 
   @override
   void dispose() {
+    printLog("---------------->> Dispose");
     m3u8clean();
     controller.dispose();
     super.dispose();
@@ -208,6 +209,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
 
   @override
   Widget build(BuildContext context) {
+    printLog("---------------->> Build Player");
     final videoChildrens = <Widget>[
       GestureDetector(
         onTap: () {
