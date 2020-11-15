@@ -148,7 +148,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
   Size get screenSize => MediaQuery.of(context).size;
 
   void printLog(log) {
-    triggerMounted();
+    // triggerMounted();
 
     if (widget.showLog) {
       print("[YoYo Player][Controller:${controller != null}] $log");
