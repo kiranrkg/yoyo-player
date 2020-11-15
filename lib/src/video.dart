@@ -148,6 +148,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
   Size get screenSize => MediaQuery.of(context).size;
 
   void printLog(log) {
+    triggerMounted();
     if (widget.showLog) {
       print("[YoYo Player][Controller:${controller != null}] $log");
     }
@@ -602,6 +603,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
       m3u8show = false;
       showMeau = false;
     }
+
     setState(() {
       if (showMeau) {
         controlBarAnimationController.forward();
@@ -748,5 +750,9 @@ class _YoYoPlayerState extends State<YoYoPlayer>
     } else {
       OrientationPlugin.forceOrientation(DeviceOrientation.landscapeRight);
     }
+  }
+
+  void triggerMounted() {
+    if (!mounted) return;
   }
 }
