@@ -566,7 +566,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
       print(
           "--- Player Status ---\nplay url : $url\noffline : $offline\n--- start playing –––");
 
-      if (playtype == "MP4") {
+      if (url.toUpperCase().contains("mp4")) {
         // Play MP4
         widget.yoyoController.controller =
             VideoPlayerController.network(url, formatHint: VideoFormat.other)
