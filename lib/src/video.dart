@@ -566,12 +566,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
       print(
           "--- Player Status ---\nplay url : $url\noffline : $offline\n--- start playing –––");
 
-      if (url.toUpperCase().contains("mp4")) {
-        // Play MP4
-        widget.yoyoController.controller =
-            VideoPlayerController.network(url, formatHint: VideoFormat.other)
-              ..initialize();
-      } else if (playtype == "MKV") {
+      if (playtype == "MKV") {
         widget.yoyoController.controller =
             VideoPlayerController.network(url, formatHint: VideoFormat.dash)
               ..initialize();
@@ -581,6 +576,10 @@ class _YoYoPlayerState extends State<YoYoPlayer>
               ..initialize()
                   .then((_) => setState(() => hasInitError = false))
                   .catchError((e) => setState(() => hasInitError = true));
+      } else {
+        widget.yoyoController.controller =
+            VideoPlayerController.network(url, formatHint: VideoFormat.other)
+              ..initialize();
       }
     } else {
       print(
