@@ -608,11 +608,11 @@ class _YoYoPlayerState extends State<YoYoPlayer>
   }
 
   String convertDurationToString(Duration duration) {
-    var minutes = duration.inMinutes.toString();
+    var minutes = duration?.inMinutes?.toString() ?? '0';
     if (minutes.length == 1) {
       minutes = '0' + minutes;
     }
-    var seconds = (duration.inSeconds % 60).toString();
+    var seconds = ((duration?.inSeconds ?? 0) % 60).toString();
     if (seconds.length == 1) {
       seconds = '0' + seconds;
     }
