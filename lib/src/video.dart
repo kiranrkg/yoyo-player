@@ -220,12 +220,11 @@ class _YoYoPlayerState extends State<YoYoPlayer>
         });
     _event.pause = () => actionWhenVideoActive(() {
           _disableListener = true;
+          createHideControlbarTimer();
+          controller?.pause();
           if (mounted) {
             setState(() {});
           }
-
-          createHideControlbarTimer();
-          controller?.pause();
         });
     _event.mute = () => actionWhenVideoActive(() => controller.setVolume(0));
     _event.unmute = () => actionWhenVideoActive(() => controller.setVolume(1));
