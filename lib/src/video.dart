@@ -98,7 +98,9 @@ class YoYoPlayer extends StatefulWidget {
 
 class _YoYoPlayerState extends State<YoYoPlayer>
     with SingleTickerProviderStateMixin {
-  VideoPlayerController get controller => widget.yoyoController.controller;
+  // VideoPlayerController get controller => widget.yoyoController.controller;
+  VideoPlayerController controller;
+
   //vieo play type (hls,mp4,mkv,offline)
   String playtype;
   // Animation Controller
@@ -600,24 +602,24 @@ class _YoYoPlayerState extends State<YoYoPlayer>
           "--- Player Status ---\nplay url : $url\noffline : $offline\n--- start playing –––");
 
       if (playtype == "MKV") {
-        widget.yoyoController.controller =
+        controller =
             VideoPlayerController.network(url, formatHint: VideoFormat.dash)
               ..initialize();
       } else if (playtype == "HLS") {
-        widget.yoyoController.controller =
+        controller =
             VideoPlayerController.network(url, formatHint: VideoFormat.hls)
               ..initialize()
                   .then((_) => setState(() => hasInitError = false))
                   .catchError((e) => setState(() => hasInitError = true));
       } else {
-        widget.yoyoController.controller =
+        controller =
             VideoPlayerController.network(url, formatHint: VideoFormat.other)
               ..initialize();
       }
     } else {
       printLog(
           "--- Player Status ---\nplay url : $url\noffline : $offline\n--- start playing –––");
-      widget.yoyoController.controller = VideoPlayerController.file(File(url))
+      controller = VideoPlayerController.file(File(url))
         ..initialize()
             .then((value) => setState(() => hasInitError = false))
             .catchError((e) => setState(() => hasInitError = true));
@@ -675,7 +677,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
 
   void localm3u8play(File file) {
     printLog("-----------> localm3u8play <-----------");
-    widget.yoyoController.controller = VideoPlayerController.file(
+    controller = VideoPlayerController.file(
       file,
     )..initialize()
         .then((_) => setState(() => hasInitError = false))
