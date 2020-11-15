@@ -146,7 +146,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
 
   void printLog(log) {
     if (widget.showLog) {
-      print("[YoYo Player] $log");
+      print("[YoYo Player][Controller:${controller != null}] $log");
     }
   }
 
@@ -521,7 +521,6 @@ class _YoYoPlayerState extends State<YoYoPlayer>
 // video Listener
   void listener() async {
     printLog("-----------> listener <-----------");
-    printLog("call function listener");
     if ((controller?.value?.initialized ?? false) &&
         (controller?.value?.isPlaying ?? false)) {
       if (!await Wakelock.isEnabled) {
