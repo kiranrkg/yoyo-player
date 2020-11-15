@@ -220,7 +220,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
     _event.dispose = () {
       printLog("-----------> disposeEvent <-----------");
       m3u8clean();
-      controller?.dispose();
+      actionWhenVideoActive(controller?.dispose);
     };
     _event.isPlaying = controller?.value?.isPlaying ?? false;
     _event.notNullPlayer =
