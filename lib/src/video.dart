@@ -146,12 +146,13 @@ class _YoYoPlayerState extends State<YoYoPlayer>
 
   void printLog(log) {
     if (widget.showLog) {
-      print(log);
+      print("[YoYo Player] $log");
     }
   }
 
   @override
   void initState() {
+    printLog("-----------> initState <-----------");
     // getsub();
     urlcheck(widget.url);
     super.initState();
@@ -201,7 +202,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
 
   @override
   void dispose() {
-    printLog("---------------->> Dispose");
+    printLog("-----------> dispose <-----------");
     m3u8clean();
     controller.dispose();
     super.dispose();
@@ -209,7 +210,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
 
   @override
   Widget build(BuildContext context) {
-    printLog("---------------->> Build Player");
+    printLog("-----------> build <-----------");
     final videoChildrens = <Widget>[
       GestureDetector(
         onTap: () {
@@ -245,6 +246,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
 
   /// Vieo Player ActionBar
   Widget actionBar() {
+    printLog("-----------> actionBar <-----------");
     return showMeau
         ? Align(
             alignment: Alignment.topCenter,
@@ -286,6 +288,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
   }
 
   Widget m3u8list() {
+    printLog("-----------> m3u8list <-----------");
     return m3u8show == true
         ? Align(
             alignment: Alignment.topRight,
@@ -322,6 +325,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
   }
 
   List<Widget> videoBuiltInChildrens() {
+    printLog("-----------> videoBuiltInChildrens <-----------");
     return [
       actionBar(),
       btm(),
@@ -330,6 +334,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
   }
 
   Widget btm() {
+    printLog("-----------> btm <-----------");
     return showMeau
         ? bottomBar(
             controller: controller,
@@ -341,6 +346,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
   }
 
   void urlcheck(String url) {
+    printLog("-----------> urlcheck <-----------");
     final netRegx = new RegExp(r'^(http|https):\/\/([\w.]+\/?)\S*');
     final isNetwork = netRegx.hasMatch(url);
     final a = Uri.parse(url);
@@ -397,6 +403,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
 
 // M3U8 Data Setup
   void getm3u8(String video) {
+    printLog("-----------> getm3u8 <-----------");
     if (yoyo.length > 0) {
       printLog("${yoyo.length} : data start clean");
       m3u8clean();
@@ -406,6 +413,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
   }
 
   Future<M3U8s> m3u8video(String video) async {
+    printLog("-----------> m3u8video <-----------");
     yoyo.add(M3U8pass(dataquality: "Auto", dataurl: video));
     RegExp regExpAudio = new RegExp(
       Rexexresponse.regexMEDIA,
@@ -504,6 +512,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
 
 // Video controller
   void videoControllSetup(String url) {
+    printLog("-----------> videoControllSetup <-----------");
     videoInit(url);
     controller.addListener(listener);
     controller.play();
@@ -511,6 +520,8 @@ class _YoYoPlayerState extends State<YoYoPlayer>
 
 // video Listener
   void listener() async {
+    printLog("-----------> listener <-----------");
+    printLog("call function listener");
     if ((controller?.value?.initialized ?? false) &&
         (controller?.value?.isPlaying ?? false)) {
       if (!await Wakelock.isEnabled) {
@@ -532,6 +543,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
   }
 
   void createHideControlbarTimer() {
+    printLog("-----------> createHideControlbarTimer <-----------");
     clearHideControlbarTimer();
     showTime = Timer(Duration(milliseconds: 5000), () {
       if (controller != null && controller?.value?.isPlaying) {
@@ -547,10 +559,12 @@ class _YoYoPlayerState extends State<YoYoPlayer>
   }
 
   void clearHideControlbarTimer() {
+    printLog("-----------> clearHideControlbarTimer <-----------");
     showTime?.cancel();
   }
 
   void toggleControls() {
+    printLog("-----------> toggleControls <-----------");
     clearHideControlbarTimer();
 
     if (!showMeau) {
@@ -570,6 +584,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
   }
 
   void togglePlay() {
+    printLog("-----------> togglePlay <-----------");
     createHideControlbarTimer();
     if (controller?.value?.isPlaying) {
       controller.pause();
@@ -580,6 +595,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
   }
 
   void videoInit(String url) {
+    printLog("-----------> videoInit <-----------");
     if (offline == false) {
       printLog(
           "--- Player Status ---\nplay url : $url\noffline : $offline\n--- start playing –––");
@@ -610,6 +626,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
   }
 
   String convertDurationToString(Duration duration) {
+    printLog("-----------> convertDurationToString <-----------");
     var minutes = duration?.inMinutes?.toString() ?? '0';
     if (minutes.length == 1) {
       minutes = '0' + minutes;
@@ -622,6 +639,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
   }
 
   void _navigateLocally(context) async {
+    printLog("-----------> _navigateLocally <-----------");
     if (!fullscreen) {
       if (ModalRoute.of(context).willHandlePopInternally) {
         Navigator.of(context).pop();
@@ -634,6 +652,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
   }
 
   void onselectquality(M3U8pass data) async {
+    printLog("-----------> onselectquality <-----------");
     controller?.value?.isPlaying ? controller.pause() : controller.pause();
     if (data.dataquality == "Auto") {
       videoControllSetup(data.dataurl);
@@ -656,6 +675,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
   }
 
   void localm3u8play(File file) {
+    printLog("-----------> localm3u8play <-----------");
     widget.yoyoController.controller = VideoPlayerController.file(
       file,
     )..initialize()
@@ -666,6 +686,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
   }
 
   void m3u8clean() async {
+    printLog("-----------> m3u8clean <-----------");
     printLog(yoyo.length);
     for (int i = 2; i < yoyo.length; i++) {
       try {
@@ -693,6 +714,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
   }
 
   void toggleFullScreen() {
+    printLog("-----------> toggleFullScreen <-----------");
     if (fullscreen) {
       OrientationPlugin.forceOrientation(DeviceOrientation.portraitUp);
     } else {
