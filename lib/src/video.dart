@@ -213,14 +213,17 @@ class _YoYoPlayerState extends State<YoYoPlayer>
     _event.play = () => actionWhenVideoActive(() {
           createHideControlbarTimer();
           controller?.play();
-          setState(() {
-            _disableListener = false;
-          });
+          _disableListener = false;
+          if (mounted) {
+            setState(() {});
+          }
         });
     _event.pause = () => actionWhenVideoActive(() {
-          setState(() {
-            _disableListener = true;
-          });
+          _disableListener = true;
+          if (mounted) {
+            setState(() {});
+          }
+
           createHideControlbarTimer();
           controller?.pause();
         });
