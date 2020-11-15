@@ -22,6 +22,7 @@ typedef VideoCallback<T> = void Function(T t);
 
 class YoyoPlayerController {
   VideoPlayerController controller;
+  YoyoPlayerController(this.controller);
 }
 
 class YoYoPlayer extends StatefulWidget {
