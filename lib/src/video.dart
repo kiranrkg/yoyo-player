@@ -206,23 +206,29 @@ class _YoYoPlayerState extends State<YoYoPlayer>
 
   void exportEventPlayer() {
     printLog("-----------> exportEventPlayer <-----------");
-    _event.play = () {
-      createHideControlbarTimer();
-      controller?.play();
-    };
-    _event.pause = () {
-      createHideControlbarTimer();
-      controller?.pause();
-    };
-    _event.mute = () {
-      controller.setVolume(0);
-    };
-    _event.unmute = () {
-      controller.setVolume(1);
-    };
+    _event.play = () => actionWhenVideoActive(() {
+          createHideControlbarTimer();
+          controller?.play();
+        });
+    _event.pause = () => actionWhenVideoActive(() {
+          createHideControlbarTimer();
+          controller?.pause();
+        });
+    _event.mute = () => actionWhenVideoActive(() => controller.setVolume(0));
+    _event.unmute = () => actionWhenVideoActive(() => controller.setVolume(1));
     _event.isPlaying = controller?.value?.isPlaying ?? false;
     _event.notNullPlayer =
         controller != null && (controller?.value?.initialized ?? false);
+  }
+
+  void actionWhenVideoActive(Function func) {
+    printLog("-----------> actionWhenVideoActive <-----------");
+    if (controller?.value?.initialized ?? false) {
+      printLog("-----------> Active");
+      func?.call();
+    } else {
+      printLog("-----------> Deactive");
+    }
   }
 
   @override
