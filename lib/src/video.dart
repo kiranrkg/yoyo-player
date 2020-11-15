@@ -239,6 +239,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
     printLog("-----------> disposeVideo <-----------");
     m3u8clean();
     actionWhenVideoActive(() {
+      controller?.removeListener(listener);
       controller?.dispose();
       controller = null;
     });
@@ -566,19 +567,19 @@ class _YoYoPlayerState extends State<YoYoPlayer>
     printLog("-----------> listener <-----------");
     if ((controller?.value?.initialized ?? false) &&
         (controller?.value?.isPlaying ?? false)) {
-      if (!await Wakelock.isEnabled) {
+      if (!await Wakelock.enabled) {
         await Wakelock.enable();
       }
-      setState(() {
-        videoDuration = convertDurationToString(controller?.value?.duration);
-        videoSeek = convertDurationToString(controller?.value?.position);
-        videoSeekSecond = controller?.value?.position?.inSeconds?.toDouble();
-        videoDurationSecond =
-            controller?.value?.duration?.inSeconds?.toDouble();
-      });
+      videoDuration = convertDurationToString(controller?.value?.duration);
+      videoSeek = convertDurationToString(controller?.value?.position);
+      videoSeekSecond = controller?.value?.position?.inSeconds?.toDouble();
+      videoDurationSecond = controller?.value?.duration?.inSeconds?.toDouble();
+      if (!mounted) return;
+      setState(() {});
     } else {
-      if (await Wakelock.isEnabled) {
+      if (await Wakelock.enabled) {
         await Wakelock.disable();
+        if (!mounted) return;
         setState(() {});
       }
     }
