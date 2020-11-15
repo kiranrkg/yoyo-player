@@ -65,6 +65,8 @@ class YoYoPlayer extends StatefulWidget {
   // Vieo Player Controller
   final YoyoPlayerController yoyoController;
 
+  final bool showLog;
+
   ///
   /// ```dart
   /// YoYoPlayer(
@@ -87,6 +89,7 @@ class YoYoPlayer extends StatefulWidget {
     this.videoLoadingStyle,
     this.onfullscreen,
     this.onpeningvideo,
+    this.showLog = false,
   }) : super(key: key);
 
   @override
@@ -140,7 +143,13 @@ class _YoYoPlayerState extends State<YoYoPlayer>
   Timer showTime;
   //Current ScreenSize
   Size get screenSize => MediaQuery.of(context).size;
-  //
+
+  void printLog(log) {
+    if (widget.showLog) {
+      print(log);
+    }
+  }
+
   @override
   void initState() {
     // getsub();
@@ -288,7 +297,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
                               m3u8quality = e.dataquality;
                               m3u8show = false;
                               onselectquality(e);
-                              print(
+                              printLog(
                                   "--- quality select ---\nquality : ${e.dataquality}\nlink : ${e.dataurl}");
                             },
                             child: Container(
@@ -334,7 +343,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
     final isNetwork = netRegx.hasMatch(url);
     final a = Uri.parse(url);
 
-    print("parse url data end : ${a.pathSegments.last}");
+    printLog("parse url data end : ${a.pathSegments.last}");
     if (isNetwork) {
       setState(() {
         offline = false;
@@ -344,7 +353,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
           setState(() {
             playtype = "MKV";
           });
-          print("urlend : mkv");
+          printLog("urlend : mkv");
           // widget.onpeningvideo("MKV");
         }
         videoControllSetup(url);
@@ -353,10 +362,10 @@ class _YoYoPlayerState extends State<YoYoPlayer>
           setState(() {
             playtype = "MP4";
           });
-          print("urlend : mp4 $playtype");
+          printLog("urlend : mp4 $playtype");
           // widget.onpeningvideo("MP4");
         }
-        print("urlend : mp4");
+        printLog("urlend : mp4");
         videoControllSetup(url);
       } else if (a.pathSegments.last.endsWith("m3u8")) {
         if (widget.onpeningvideo == null) {
@@ -365,19 +374,19 @@ class _YoYoPlayerState extends State<YoYoPlayer>
           });
           // widget.onpeningvideo("M3U8");
         }
-        print("urlend : m3u8");
+        printLog("urlend : m3u8");
         videoControllSetup(url);
         getm3u8(url);
       } else {
-        print("urlend : null");
+        printLog("urlend : null");
         videoControllSetup(url);
         getm3u8(url);
       }
-      print("--- Current Video Status ---\noffline : $offline");
+      printLog("--- Current Video Status ---\noffline : $offline");
     } else {
       setState(() {
         offline = true;
-        print(
+        printLog(
             "--- Current Video Status ---\noffline : $offline \n --- :3 done url check ---");
       });
       videoControllSetup(url);
@@ -387,10 +396,10 @@ class _YoYoPlayerState extends State<YoYoPlayer>
 // M3U8 Data Setup
   void getm3u8(String video) {
     if (yoyo.length > 0) {
-      print("${yoyo.length} : data start clean");
+      printLog("${yoyo.length} : data start clean");
       m3u8clean();
     }
-    print("---- m3u8 fesh start ----\n$video\n--- please wait –––");
+    printLog("---- m3u8 fesh start ----\n$video\n--- please wait –––");
     m3u8video(video);
   }
 
@@ -409,7 +418,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
     setState(
       () {
         if (m3u8Content != null) {
-          print("--- HLS Old Data ----\n$m3u8Content");
+          printLog("--- HLS Old Data ----\n$m3u8Content");
           m3u8Content = null;
         }
       },
@@ -422,13 +431,13 @@ class _YoYoPlayerState extends State<YoYoPlayer>
         }
       }
     } catch (e) {
-      print("-----> bug render video M3U8 $e");
+      printLog("-----> bug render video M3U8 $e");
     }
 
     List<RegExpMatch> matches = regExp.allMatches(m3u8Content).toList();
     List<RegExpMatch> audioMatches =
         regExpAudio.allMatches(m3u8Content).toList();
-    print(
+    printLog(
         "--- HLS Data ----\n$m3u8Content \ntotal length: ${yoyo.length} \nfinish");
 
     matches.forEach(
@@ -443,10 +452,10 @@ class _YoYoPlayerState extends State<YoYoPlayer>
         if (isNetwork) {
           url = sourceurl;
         } else {
-          print(match);
+          printLog(match);
           final dataurl = match.group(0);
           url = "$dataurl$sourceurl";
-          print("--- hls chlid url intergration ---\nchild url :$url");
+          printLog("--- hls chlid url intergration ---\nchild url :$url");
         }
         audioMatches.forEach(
           (RegExpMatch regExpMatch2) async {
@@ -457,17 +466,17 @@ class _YoYoPlayerState extends State<YoYoPlayer>
             if (isNetwork) {
               auurl = audiourl;
             } else {
-              print(match);
+              printLog(match);
               final audataurl = match.group(0);
               auurl = "$audataurl$audiourl";
-              print("url network audio  $url $audiourl");
+              printLog("url network audio  $url $audiourl");
             }
             audioList.add(AUDIO(url: auurl));
-            print(audiourl);
+            printLog(audiourl);
           },
         );
         String audio = "";
-        print("-- audio ---\naudio list length :${audio.length}");
+        printLog("-- audio ---\naudio list length :${audio.length}");
         if (audioList.length != 0) {
           audio =
               """#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="audio-medium",NAME="audio",AUTOSELECT=YES,DEFAULT=YES,CHANNELS="2",URI="${audioList.last.url}"\n""";
@@ -480,13 +489,13 @@ class _YoYoPlayerState extends State<YoYoPlayer>
           await file.writeAsString(
               """#EXTM3U\n#EXT-X-INDEPENDENT-SEGMENTS\n$audio#EXT-X-STREAM-INF:CLOSED-CAPTIONS=NONE,BANDWIDTH=1469712,RESOLUTION=$quality,FRAME-RATE=30.000\n$url""");
         } catch (e) {
-          print("Couldn't write file");
+          printLog("Couldn't write file");
         }
         yoyo.add(M3U8pass(dataquality: quality, dataurl: url));
       },
     );
     M3U8s m3u8s = M3U8s(m3u8s: yoyo);
-    print(
+    printLog(
         "--- m3u8 file write ---\n${yoyo.map((e) => e.dataquality == e.dataurl).toList()}\nlength : ${yoyo.length}\nSuccess");
     return m3u8s;
   }
@@ -570,7 +579,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
 
   void videoInit(String url) {
     if (offline == false) {
-      print(
+      printLog(
           "--- Player Status ---\nplay url : $url\noffline : $offline\n--- start playing –––");
 
       if (playtype == "MKV") {
@@ -589,7 +598,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
               ..initialize();
       }
     } else {
-      print(
+      printLog(
           "--- Player Status ---\nplay url : $url\noffline : $offline\n--- start playing –––");
       widget.yoyoController.controller = VideoPlayerController.file(File(url))
         ..initialize()
@@ -632,15 +641,15 @@ class _YoYoPlayerState extends State<YoYoPlayer>
         final Directory directory = await getApplicationDocumentsDirectory();
         final File file =
             File('${directory.path}/yoyo${data.dataquality}.m3u8');
-        print("read file success");
+        printLog("read file success");
         text = await file.readAsString();
-        print("data : $text  :: data");
+        printLog("data : $text  :: data");
         localm3u8play(file);
         // videoControllSetup(file);
       } catch (e) {
-        print("Couldn't read file ${data.dataquality} e: $e");
+        printLog("Couldn't read file ${data.dataquality} e: $e");
       }
-      print("data : ${data.dataquality}");
+      printLog("data : ${data.dataquality}");
     }
   }
 
@@ -655,29 +664,29 @@ class _YoYoPlayerState extends State<YoYoPlayer>
   }
 
   void m3u8clean() async {
-    print(yoyo.length);
+    printLog(yoyo.length);
     for (int i = 2; i < yoyo.length; i++) {
       try {
         final Directory directory = await getApplicationDocumentsDirectory();
         final File file = File('${directory.path}/${yoyo[i].dataquality}.m3u8');
         file.delete();
-        print("delete success $file");
+        printLog("delete success $file");
       } catch (e) {
-        print("Couldn't delete file $e");
+        printLog("Couldn't delete file $e");
       }
     }
     try {
-      print("Audio m3u8 list clean");
+      printLog("Audio m3u8 list clean");
       audioList.clear();
     } catch (e) {
-      print("Audio list clean error $e");
+      printLog("Audio list clean error $e");
     }
     audioList.clear();
     try {
-      print("m3u8 data list clean");
+      printLog("m3u8 data list clean");
       yoyo.clear();
     } catch (e) {
-      print("m3u8 video list clean error $e");
+      printLog("m3u8 video list clean error $e");
     }
   }
 
