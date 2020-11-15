@@ -148,8 +148,6 @@ class _YoYoPlayerState extends State<YoYoPlayer>
   Size get screenSize => MediaQuery.of(context).size;
 
   void printLog(log) {
-    // triggerMounted();
-
     if (widget.showLog) {
       print("[YoYo Player][Controller:${controller != null}] $log");
     }
@@ -484,74 +482,78 @@ class _YoYoPlayerState extends State<YoYoPlayer>
           m3u8Content = utf8.decode(response.bodyBytes);
         }
       }
+      print("======> m3u8Content: $m3u8Content");
+
+      List<RegExpMatch> matches = regExp.allMatches(m3u8Content).toList();
+      List<RegExpMatch> audioMatches =
+          regExpAudio.allMatches(m3u8Content).toList();
+      printLog(
+          "--- HLS Data ----\n$m3u8Content \ntotal length: ${yoyo.length} \nfinish");
+
+      matches.forEach(
+        (RegExpMatch regExpMatch) async {
+          String quality = (regExpMatch.group(1)).toString();
+          String sourceurl = (regExpMatch.group(3)).toString();
+          final netRegx = new RegExp(r'^(http|https):\/\/([\w.]+\/?)\S*');
+          final netRegx2 = new RegExp(r'(.*)\r?\/');
+          final isNetwork = netRegx.hasMatch(sourceurl);
+          final match = netRegx2.firstMatch(video);
+          String url;
+          if (isNetwork) {
+            url = sourceurl;
+          } else {
+            printLog(match);
+            final dataurl = match.group(0);
+            url = "$dataurl$sourceurl";
+            printLog("--- hls chlid url intergration ---\nchild url :$url");
+          }
+          audioMatches.forEach(
+            (RegExpMatch regExpMatch2) async {
+              String audiourl = (regExpMatch2.group(1)).toString();
+              final isNetwork = netRegx.hasMatch(audiourl);
+              final match = netRegx2.firstMatch(video);
+              String auurl = audiourl;
+              if (isNetwork) {
+                auurl = audiourl;
+              } else {
+                printLog(match);
+                final audataurl = match.group(0);
+                auurl = "$audataurl$audiourl";
+                printLog("url network audio  $url $audiourl");
+              }
+              audioList.add(AUDIO(url: auurl));
+              printLog(audiourl);
+            },
+          );
+          String audio = "";
+          printLog("-- audio ---\naudio list length :${audio.length}");
+          if (audioList.length != 0) {
+            audio =
+                """#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="audio-medium",NAME="audio",AUTOSELECT=YES,DEFAULT=YES,CHANNELS="2",URI="${audioList.last.url}"\n""";
+          } else {
+            audio = "";
+          }
+          try {
+            final Directory directory =
+                await getApplicationDocumentsDirectory();
+            final File file = File('${directory.path}/yoyo$quality.m3u8');
+            await file.writeAsString(
+                """#EXTM3U\n#EXT-X-INDEPENDENT-SEGMENTS\n$audio#EXT-X-STREAM-INF:CLOSED-CAPTIONS=NONE,BANDWIDTH=1469712,RESOLUTION=$quality,FRAME-RATE=30.000\n$url""");
+          } catch (e) {
+            printLog("Couldn't write file");
+          }
+          yoyo.add(M3U8pass(dataquality: quality, dataurl: url));
+        },
+      );
+      M3U8s m3u8s = M3U8s(m3u8s: yoyo);
+      printLog(
+          "--- m3u8 file write ---\n${yoyo.map((e) => e.dataquality == e.dataurl).toList()}\nlength : ${yoyo.length}\nSuccess");
+      return m3u8s;
     } catch (e) {
       printLog("-----> bug render video M3U8 $e");
     }
 
-    List<RegExpMatch> matches = regExp.allMatches(m3u8Content).toList();
-    List<RegExpMatch> audioMatches =
-        regExpAudio.allMatches(m3u8Content).toList();
-    printLog(
-        "--- HLS Data ----\n$m3u8Content \ntotal length: ${yoyo.length} \nfinish");
-
-    matches.forEach(
-      (RegExpMatch regExpMatch) async {
-        String quality = (regExpMatch.group(1)).toString();
-        String sourceurl = (regExpMatch.group(3)).toString();
-        final netRegx = new RegExp(r'^(http|https):\/\/([\w.]+\/?)\S*');
-        final netRegx2 = new RegExp(r'(.*)\r?\/');
-        final isNetwork = netRegx.hasMatch(sourceurl);
-        final match = netRegx2.firstMatch(video);
-        String url;
-        if (isNetwork) {
-          url = sourceurl;
-        } else {
-          printLog(match);
-          final dataurl = match.group(0);
-          url = "$dataurl$sourceurl";
-          printLog("--- hls chlid url intergration ---\nchild url :$url");
-        }
-        audioMatches.forEach(
-          (RegExpMatch regExpMatch2) async {
-            String audiourl = (regExpMatch2.group(1)).toString();
-            final isNetwork = netRegx.hasMatch(audiourl);
-            final match = netRegx2.firstMatch(video);
-            String auurl = audiourl;
-            if (isNetwork) {
-              auurl = audiourl;
-            } else {
-              printLog(match);
-              final audataurl = match.group(0);
-              auurl = "$audataurl$audiourl";
-              printLog("url network audio  $url $audiourl");
-            }
-            audioList.add(AUDIO(url: auurl));
-            printLog(audiourl);
-          },
-        );
-        String audio = "";
-        printLog("-- audio ---\naudio list length :${audio.length}");
-        if (audioList.length != 0) {
-          audio =
-              """#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="audio-medium",NAME="audio",AUTOSELECT=YES,DEFAULT=YES,CHANNELS="2",URI="${audioList.last.url}"\n""";
-        } else {
-          audio = "";
-        }
-        try {
-          final Directory directory = await getApplicationDocumentsDirectory();
-          final File file = File('${directory.path}/yoyo$quality.m3u8');
-          await file.writeAsString(
-              """#EXTM3U\n#EXT-X-INDEPENDENT-SEGMENTS\n$audio#EXT-X-STREAM-INF:CLOSED-CAPTIONS=NONE,BANDWIDTH=1469712,RESOLUTION=$quality,FRAME-RATE=30.000\n$url""");
-        } catch (e) {
-          printLog("Couldn't write file");
-        }
-        yoyo.add(M3U8pass(dataquality: quality, dataurl: url));
-      },
-    );
-    M3U8s m3u8s = M3U8s(m3u8s: yoyo);
-    printLog(
-        "--- m3u8 file write ---\n${yoyo.map((e) => e.dataquality == e.dataurl).toList()}\nlength : ${yoyo.length}\nSuccess");
-    return m3u8s;
+    return null;
   }
 
 // Video controller
@@ -574,12 +576,12 @@ class _YoYoPlayerState extends State<YoYoPlayer>
       videoSeek = convertDurationToString(controller?.value?.position);
       videoSeekSecond = controller?.value?.position?.inSeconds?.toDouble();
       videoDurationSecond = controller?.value?.duration?.inSeconds?.toDouble();
-      if (!mounted) return;
+      triggerMounted();
       setState(() {});
     } else {
       if (await Wakelock.enabled) {
         await Wakelock.disable();
-        if (!mounted) return;
+        triggerMounted();
         setState(() {});
       }
     }
