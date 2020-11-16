@@ -68,6 +68,8 @@ class YoYoPlayer extends StatefulWidget {
 
   final bool showLog;
 
+  final EventPlayer event;
+
   ///
   /// ```dart
   /// YoYoPlayer(
@@ -86,6 +88,7 @@ class YoYoPlayer extends StatefulWidget {
     @required this.yoyoController,
     @required this.url,
     @required this.aspectRatio,
+    @required this.event,
     this.videoStyle,
     this.videoLoadingStyle,
     this.onfullscreen,
@@ -101,7 +104,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
     with SingleTickerProviderStateMixin {
   VideoPlayerController controller;
   // event player
-  final EventPlayer _event = EventPlayer();
+
   //vieo play type (hls,mp4,mkv,offline)
   String playtype;
   // Animation Controller
@@ -210,7 +213,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
 
   void exportEventPlayer() {
     printLog("-----------> exportEventPlayer <-----------");
-    _event.play = () => actionWhenVideoActive(() async {
+    widget.event.play = () => actionWhenVideoActive(() async {
           createHideControlbarTimer();
 
           await controller.play();
@@ -220,7 +223,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
             setState(() {});
           }
         });
-    _event.pause = () => actionWhenVideoActive(() async {
+    widget.event.pause = () => actionWhenVideoActive(() async {
           _disableListener = true;
           createHideControlbarTimer();
           await controller.pause();
@@ -229,12 +232,14 @@ class _YoYoPlayerState extends State<YoYoPlayer>
             setState(() {});
           }
         });
-    _event.mute = () => actionWhenVideoActive(() => controller.setVolume(0));
-    _event.unmute = () => actionWhenVideoActive(() => controller.setVolume(1));
+    widget.event.mute =
+        () => actionWhenVideoActive(() => controller.setVolume(0));
+    widget.event.unmute =
+        () => actionWhenVideoActive(() => controller.setVolume(1));
 
-    _event.dispose = disposeVideo;
-    _event.isPlaying = controller?.value?.isPlaying ?? false;
-    _event.notNullPlayer =
+    widget.event.dispose = disposeVideo;
+    widget.event.isPlaying = controller?.value?.isPlaying ?? false;
+    widget.event.notNullPlayer =
         controller != null && (controller?.value?.initialized ?? false);
   }
 
