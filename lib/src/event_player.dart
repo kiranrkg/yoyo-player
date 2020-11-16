@@ -6,4 +6,5 @@ class EventPlayer {
   Function() dispose;
   bool isPlaying;
   bool notNullPlayer;
+  Duration duration;
 }

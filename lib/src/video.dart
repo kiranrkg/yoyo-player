@@ -21,11 +21,6 @@ import 'widget/top_chip.dart';
 
 typedef VideoCallback<T> = void Function(T t);
 
-class YoyoPlayerController {
-  VideoPlayerController controller;
-  YoyoPlayerController(this.controller);
-}
-
 class YoYoPlayer extends StatefulWidget {
   ///Video[source],
   ///```dart
@@ -63,9 +58,6 @@ class YoYoPlayer extends StatefulWidget {
   /// video Type
   final VideoCallback<String> onpeningvideo;
 
-  // Vieo Player Controller
-  final YoyoPlayerController yoyoController;
-
   final bool showLog;
 
   final EventPlayer event;
@@ -85,7 +77,6 @@ class YoYoPlayer extends StatefulWidget {
   /// ```
   YoYoPlayer({
     Key key,
-    @required this.yoyoController,
     @required this.url,
     @required this.aspectRatio,
     @required this.event,
@@ -241,6 +232,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
     widget.event.isPlaying = controller?.value?.isPlaying ?? false;
     widget.event.notNullPlayer =
         controller != null && (controller?.value?.initialized ?? false);
+    widget.event.duration = controller?.value?.duration;
   }
 
   void actionWhenVideoActive(Function func) {
