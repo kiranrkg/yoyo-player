@@ -273,16 +273,19 @@ class _YoYoPlayerState extends State<YoYoPlayer>
   Widget build(BuildContext context) {
     printLog("-----------> build <-----------");
     final videoChildrens = <Widget>[
-      GestureDetector(
-        onTap: () {
-          toggleControls();
-        },
-        onDoubleTap: () {
-          togglePlay();
-        },
-        child: AspectRatio(
-          aspectRatio: controller?.value?.aspectRatio ?? 16 / 9,
-          child: VideoPlayer(controller),
+      Align(
+        alignment: Alignment.center,
+        child: GestureDetector(
+          onTap: () {
+            toggleControls();
+          },
+          onDoubleTap: () {
+            togglePlay();
+          },
+          child: AspectRatio(
+            aspectRatio: controller?.value?.aspectRatio ?? 9 / 16,
+            child: VideoPlayer(controller),
+          ),
         ),
       ),
       if (widget.isShowControl) ...videoBuiltInChildrens()
@@ -294,7 +297,9 @@ class _YoYoPlayerState extends State<YoYoPlayer>
               ? calculateAspectRatio(context, screenSize)
               : widget.aspectRatio ?? 16 / 9,
           child: (controller?.value?.initialized ?? false)
-              ? Stack(children: videoChildrens)
+              ? Stack(
+                  children: videoChildrens,
+                )
               : widget.videoLoadingStyle.loading);
     }
     return Container(
