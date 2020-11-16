@@ -67,6 +67,9 @@ class YoYoPlayer extends StatefulWidget {
   /// show control
   final bool isShowControl;
 
+  /// callback init completed
+  final Function onInitCompleted;
+
   ///
   /// ```dart
   /// YoYoPlayer(
@@ -91,6 +94,7 @@ class YoYoPlayer extends StatefulWidget {
     this.onpeningvideo,
     this.showLog = false,
     this.isShowControl = true,
+    this.onInitCompleted,
   }) : super(key: key);
 
   @override
@@ -146,6 +150,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
   Timer showTime;
   //Current ScreenSize
   Size get screenSize => MediaQuery.of(context).size;
+
   bool _disableListener = false;
 
   void printLog(log) {
@@ -678,25 +683,35 @@ class _YoYoPlayerState extends State<YoYoPlayer>
       if (playtype == "MKV") {
         controller =
             VideoPlayerController.network(url, formatHint: VideoFormat.dash)
-              ..initialize();
+              ..initialize().then((value) {
+                controller?.pause();
+                widget.onInitCompleted?.call();
+              });
       } else if (playtype == "HLS") {
         controller =
             VideoPlayerController.network(url, formatHint: VideoFormat.hls)
-              ..initialize()
-                  .then((_) => setState(() => hasInitError = false))
-                  .catchError((e) => setState(() => hasInitError = true));
+              ..initialize().then((_) {
+                setState(() => hasInitError = false);
+                controller?.pause();
+                widget.onInitCompleted?.call();
+              }).catchError((e) => setState(() => hasInitError = true));
       } else {
         controller =
             VideoPlayerController.network(url, formatHint: VideoFormat.other)
-              ..initialize();
+              ..initialize().then((value) {
+                controller?.pause();
+                widget.onInitCompleted?.call();
+              });
       }
     } else {
       printLog(
           "--- Player Status ---\nplay url : $url\noffline : $offline\n--- start playing –––");
       controller = VideoPlayerController.file(File(url))
-        ..initialize()
-            .then((value) => setState(() => hasInitError = false))
-            .catchError((e) => setState(() => hasInitError = true));
+        ..initialize().then((value) {
+          controller?.pause();
+          widget.onInitCompleted?.call();
+          setState(() => hasInitError = false);
+        }).catchError((e) => setState(() => hasInitError = true));
     }
   }
 
