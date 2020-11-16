@@ -317,8 +317,8 @@ class _YoYoPlayerState extends State<YoYoPlayer>
                 )
               : widget.videoLoadingStyle.loading);
     }
-    return Container(
-      height: videoHeight,
+    return AspectRatio(
+      aspectRatio: controller?.value?.aspectRatio ?? 1,
       child: (controller?.value?.initialized ?? false)
           ? Stack(children: videoChildrens)
           : widget.videoLoadingStyle.loading,
