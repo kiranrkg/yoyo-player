@@ -277,22 +277,43 @@ class _YoYoPlayerState extends State<YoYoPlayer>
   @override
   Widget build(BuildContext context) {
     printLog("-----------> build <-----------");
+    final videoHeight = controller?.value?.size?.height;
+    final videoWidth = controller?.value?.size?.width;
     final videoChildrens = <Widget>[
-      Align(
-        alignment: Alignment.center,
-        child: GestureDetector(
-          onTap: () {
-            toggleControls();
-          },
-          onDoubleTap: () {
-            togglePlay();
-          },
-          child: AspectRatio(
-            aspectRatio: controller?.value?.aspectRatio ?? 9 / 16,
-            child: VideoPlayer(controller),
+      LayoutBuilder(builder: (context, constrain) {
+        double aspectRatio = (constrain.maxHeight == double.infinity ||
+                constrain.maxWidth == double.infinity)
+            ? controller?.value?.initialized == true
+                ? controller?.value?.aspectRatio
+                : 1
+            : constrain.maxWidth / constrain.maxHeight;
+        return Align(
+          alignment: Alignment.center,
+          child: Center(
+            child: GestureDetector(
+              onTap: () {
+                toggleControls();
+              },
+              onDoubleTap: () {
+                togglePlay();
+              },
+              child: AspectRatio(
+                aspectRatio: aspectRatio,
+                child: FittedBox(
+                  fit: BoxFit.cover,
+                  child: SizedBox(
+                    height: videoHeight,
+                    width: videoWidth,
+                    child: controller?.value?.initialized == true
+                        ? VideoPlayer(controller)
+                        : null,
+                  ),
+                ),
+              ),
+            ),
           ),
-        ),
-      ),
+        );
+      }),
       if (widget.isShowControl) ...videoBuiltInChildrens()
     ];
 
