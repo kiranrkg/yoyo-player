@@ -282,7 +282,6 @@ class _YoYoPlayerState extends State<YoYoPlayer>
     ];
 
     if (fullscreen) {
-      print("=====>> Case fullscreen");
       return AspectRatio(
           aspectRatio: fullscreen
               ? calculateAspectRatio(context, screenSize)
@@ -293,8 +292,6 @@ class _YoYoPlayerState extends State<YoYoPlayer>
                 )
               : widget.videoLoadingStyle.loading);
     }
-    print(
-        "=====>> Case normal ${controller?.value?.aspectRatio} $videoHeight $videoWidth");
     return AspectRatio(
       aspectRatio: controller?.value?.aspectRatio ?? 1,
       child: (controller?.value?.initialized ?? false)
@@ -503,7 +500,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
           m3u8Content = utf8.decode(response.bodyBytes);
         }
       }
-      print("======> m3u8Content: $m3u8Content");
+      printLog("======> m3u8Content: $m3u8Content");
 
       List<RegExpMatch> matches = regExp.allMatches(m3u8Content).toList();
       List<RegExpMatch> audioMatches =
