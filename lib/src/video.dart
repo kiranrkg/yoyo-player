@@ -72,6 +72,8 @@ class YoYoPlayer extends StatefulWidget {
 
   final bool isLooping;
 
+  final bool showOptionM3U8;
+
   ///
   /// ```dart
   /// YoYoPlayer(
@@ -98,6 +100,7 @@ class YoYoPlayer extends StatefulWidget {
     this.isShowControl = true,
     this.onInitCompleted,
     this.isLooping = true,
+    this.showOptionM3U8 = false,
   }) : super(key: key);
 
   @override
@@ -319,7 +322,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
                   Container(
                     width: 5,
                   ),
-                  if (widget.url?.contains('m3u8'))
+                  if (widget.url?.contains('m3u8') && widget.showOptionM3U8)
                     topchip(
                       Text(m3u8quality, style: widget.videoStyle.qualitystyle),
                       () {
@@ -575,7 +578,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
 
 // Video controller
   void videoControllSetup(String url) {
-    printLog("-----------> videoControllSetup <-----------");
+    printLog("-----------> videoControllSetup <----------- :: $url");
     videoInit(url);
     controller.addListener(listener);
   }
