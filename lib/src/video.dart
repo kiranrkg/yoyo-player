@@ -277,16 +277,11 @@ class _YoYoPlayerState extends State<YoYoPlayer>
   @override
   Widget build(BuildContext context) {
     printLog("-----------> build <-----------");
-    final videoHeight = controller?.value?.size?.height;
-    final videoWidth = controller?.value?.size?.width;
+
     final videoChildrens = <Widget>[
       LayoutBuilder(builder: (context, constrain) {
-        double aspectRatio = (constrain.maxHeight == double.infinity ||
-                constrain.maxWidth == double.infinity)
-            ? controller?.value?.initialized == true
-                ? controller?.value?.aspectRatio
-                : 1
-            : constrain.maxWidth / constrain.maxHeight;
+        final videoHeight = controller?.value?.size?.height;
+        final videoWidth = controller?.value?.size?.width;
         return Align(
           alignment: Alignment.center,
           child: Center(
@@ -298,7 +293,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
                 togglePlay();
               },
               child: AspectRatio(
-                aspectRatio: aspectRatio,
+                aspectRatio: controller?.value?.aspectRatio ?? 1,
                 child: SizedBox(
                   height: videoHeight,
                   width: videoWidth,
