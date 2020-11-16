@@ -70,6 +70,8 @@ class YoYoPlayer extends StatefulWidget {
   /// callback init completed
   final Function onInitCompleted;
 
+  final bool isLooping;
+
   ///
   /// ```dart
   /// YoYoPlayer(
@@ -95,6 +97,7 @@ class YoYoPlayer extends StatefulWidget {
     this.showLog = false,
     this.isShowControl = true,
     this.onInitCompleted,
+    this.isLooping = true,
   }) : super(key: key);
 
   @override
@@ -213,6 +216,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
     Screen.keepOn(true);
   }
 
+  final Map<String, Function> listEventListener = {};
   void exportEventPlayer() {
     printLog("-----------> exportEventPlayer <-----------");
     widget.event.play = () => actionWhenVideoActive(() async {
@@ -245,6 +249,10 @@ class _YoYoPlayerState extends State<YoYoPlayer>
         controller != null && (controller?.value?.initialized ?? false);
     widget.event.duration = controller?.value?.duration;
     widget.event.aspectRatio = controller?.value?.aspectRatio;
+    widget.event.addListener = (String key, Function event) {
+      listEventListener[key] = event;
+      controller?.addListener(listEventListener[key]);
+    };
   }
 
   void actionWhenVideoActive(Function func) {
@@ -262,6 +270,10 @@ class _YoYoPlayerState extends State<YoYoPlayer>
     m3u8clean();
     actionWhenVideoActive(() {
       controller?.removeListener(listener);
+      listEventListener.forEach((key, value) {
+        controller?.removeListener(listEventListener[key]);
+      });
+      listEventListener.clear();
       controller?.dispose();
       controller = null;
     });
@@ -600,7 +612,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
     printLog("-----------> videoControllSetup <-----------");
     videoInit(url);
     controller.addListener(listener);
-    controller.play();
+    widget.event.listener = controller.play();
   }
 
 // video Listener
@@ -695,6 +707,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
       if (playtype == "MKV") {
         controller =
             VideoPlayerController.network(url, formatHint: VideoFormat.dash)
+              ..setLooping(widget.isLooping)
               ..initialize().then((value) {
                 controller?.pause();
                 widget.onInitCompleted?.call();
@@ -702,6 +715,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
       } else if (playtype == "HLS") {
         controller =
             VideoPlayerController.network(url, formatHint: VideoFormat.hls)
+              ..setLooping(widget.isLooping)
               ..initialize().then((_) {
                 setState(() => hasInitError = false);
                 controller?.pause();
@@ -710,6 +724,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
       } else {
         controller =
             VideoPlayerController.network(url, formatHint: VideoFormat.other)
+              ..setLooping(widget.isLooping)
               ..initialize().then((value) {
                 controller?.pause();
                 widget.onInitCompleted?.call();
@@ -719,6 +734,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
       printLog(
           "--- Player Status ---\nplay url : $url\noffline : $offline\n--- start playing –––");
       controller = VideoPlayerController.file(File(url))
+        ..setLooping(widget.isLooping)
         ..initialize().then((value) {
           controller?.pause();
           widget.onInitCompleted?.call();
@@ -780,9 +796,13 @@ class _YoYoPlayerState extends State<YoYoPlayer>
     printLog("-----------> localm3u8play <-----------");
     controller = VideoPlayerController.file(
       file,
-    )..initialize()
-        .then((_) => setState(() => hasInitError = false))
-        .catchError((e) => setState(() => hasInitError = true));
+    )
+      ..setLooping(widget.isLooping)
+      ..initialize().then((_) {
+        controller?.pause();
+        widget.onInitCompleted?.call();
+        setState(() => hasInitError = false);
+      }).catchError((e) => setState(() => hasInitError = true));
     controller.addListener(listener);
     controller.play();
   }
