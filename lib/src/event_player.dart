@@ -7,4 +7,5 @@ class EventPlayer {
   bool isPlaying;
   bool notNullPlayer;
   Duration duration;
+  double aspectRatio;
 }

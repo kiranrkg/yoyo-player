@@ -239,6 +239,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
     widget.event.notNullPlayer =
         controller != null && (controller?.value?.initialized ?? false);
     widget.event.duration = controller?.value?.duration;
+    widget.event.aspectRatio = controller?.value?.aspectRatio;
   }
 
   void actionWhenVideoActive(Function func) {
@@ -287,10 +288,16 @@ class _YoYoPlayerState extends State<YoYoPlayer>
       if (widget.isShowControl) ...videoBuiltInChildrens()
     ];
 
-    return AspectRatio(
-      aspectRatio: fullscreen
-          ? calculateAspectRatio(context, screenSize)
-          : widget.aspectRatio ?? 16 / 9,
+    if (fullscreen) {
+      return AspectRatio(
+          aspectRatio: fullscreen
+              ? calculateAspectRatio(context, screenSize)
+              : widget.aspectRatio ?? 16 / 9,
+          child: (controller?.value?.initialized ?? false)
+              ? Stack(children: videoChildrens)
+              : widget.videoLoadingStyle.loading);
+    }
+    return Container(
       child: (controller?.value?.initialized ?? false)
           ? Stack(children: videoChildrens)
           : widget.videoLoadingStyle.loading,
