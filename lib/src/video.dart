@@ -612,7 +612,6 @@ class _YoYoPlayerState extends State<YoYoPlayer>
     printLog("-----------> videoControllSetup <-----------");
     videoInit(url);
     controller.addListener(listener);
-    widget.event.listener = controller.play();
   }
 
 // video Listener
