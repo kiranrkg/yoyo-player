@@ -277,11 +277,10 @@ class _YoYoPlayerState extends State<YoYoPlayer>
   @override
   Widget build(BuildContext context) {
     printLog("-----------> build <-----------");
-
+    final videoHeight = controller?.value?.size?.height;
+    final videoWidth = controller?.value?.size?.width;
     final videoChildrens = <Widget>[
       LayoutBuilder(builder: (context, constrain) {
-        final videoHeight = controller?.value?.size?.height;
-        final videoWidth = controller?.value?.size?.width;
         return Align(
           alignment: Alignment.center,
           child: GestureDetector(
@@ -319,6 +318,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
               : widget.videoLoadingStyle.loading);
     }
     return Container(
+      height: videoHeight,
       child: (controller?.value?.initialized ?? false)
           ? Stack(children: videoChildrens)
           : widget.videoLoadingStyle.loading,
