@@ -299,15 +299,12 @@ class _YoYoPlayerState extends State<YoYoPlayer>
               },
               child: AspectRatio(
                 aspectRatio: aspectRatio,
-                child: FittedBox(
-                  fit: BoxFit.cover,
-                  child: SizedBox(
-                    height: videoHeight,
-                    width: videoWidth,
-                    child: controller?.value?.initialized == true
-                        ? VideoPlayer(controller)
-                        : null,
-                  ),
+                child: SizedBox(
+                  height: videoHeight,
+                  width: videoWidth,
+                  child: controller?.value?.initialized == true
+                      ? VideoPlayer(controller)
+                      : null,
                 ),
               ),
             ),
