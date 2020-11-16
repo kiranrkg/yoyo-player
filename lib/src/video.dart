@@ -68,7 +68,7 @@ class YoYoPlayer extends StatefulWidget {
   final bool isShowControl;
 
   /// callback init completed
-  final Function onInitCompleted;
+  final Function(VideoPlayerController) onInitCompleted;
 
   final bool isLooping;
 
@@ -709,7 +709,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
               ..setLooping(widget.isLooping)
               ..initialize().then((value) {
                 controller?.pause();
-                widget.onInitCompleted?.call();
+                widget.onInitCompleted?.call(controller);
               });
       } else if (playtype == "HLS") {
         controller =
@@ -718,7 +718,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
               ..initialize().then((_) {
                 setState(() => hasInitError = false);
                 controller?.pause();
-                widget.onInitCompleted?.call();
+                widget.onInitCompleted?.call(controller);
               }).catchError((e) => setState(() => hasInitError = true));
       } else {
         controller =
@@ -726,7 +726,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
               ..setLooping(widget.isLooping)
               ..initialize().then((value) {
                 controller?.pause();
-                widget.onInitCompleted?.call();
+                widget.onInitCompleted?.call(controller);
               });
       }
     } else {
@@ -736,7 +736,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
         ..setLooping(widget.isLooping)
         ..initialize().then((value) {
           controller?.pause();
-          widget.onInitCompleted?.call();
+          widget.onInitCompleted?.call(controller);
           setState(() => hasInitError = false);
         }).catchError((e) => setState(() => hasInitError = true));
     }
@@ -799,7 +799,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
       ..setLooping(widget.isLooping)
       ..initialize().then((_) {
         controller?.pause();
-        widget.onInitCompleted?.call();
+        widget.onInitCompleted?.call(controller);
         setState(() => hasInitError = false);
       }).catchError((e) => setState(() => hasInitError = true));
     controller.addListener(listener);
