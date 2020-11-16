@@ -219,36 +219,6 @@ class _YoYoPlayerState extends State<YoYoPlayer>
   final Map<String, Function> listEventListener = {};
   void exportEventPlayer() {
     printLog("-----------> exportEventPlayer <-----------");
-    widget.event.play = () => actionWhenVideoActive(() async {
-          createHideControlbarTimer();
-
-          await controller.play();
-          print("----------->> Play Vide");
-          _disableListener = false;
-          if (mounted) {
-            setState(() {});
-          }
-        });
-    widget.event.pause = () => actionWhenVideoActive(() async {
-          _disableListener = true;
-          createHideControlbarTimer();
-          await controller.pause();
-          print("----------->> Pause Vide");
-          if (mounted) {
-            setState(() {});
-          }
-        });
-    widget.event.mute =
-        () => actionWhenVideoActive(() => controller.setVolume(0));
-    widget.event.unmute =
-        () => actionWhenVideoActive(() => controller.setVolume(1));
-
-    widget.event.dispose = disposeVideo;
-    widget.event.isPlaying = controller?.value?.isPlaying ?? false;
-    widget.event.notNullPlayer =
-        controller != null && (controller?.value?.initialized ?? false);
-    widget.event.duration = controller?.value?.duration;
-    widget.event.aspectRatio = controller?.value?.aspectRatio;
     widget.event.addListener = (String key, Function event) {
       listEventListener[key] = event;
       controller?.addListener(listEventListener[key]);
