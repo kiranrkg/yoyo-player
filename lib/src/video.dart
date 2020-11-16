@@ -284,23 +284,21 @@ class _YoYoPlayerState extends State<YoYoPlayer>
         final videoWidth = controller?.value?.size?.width;
         return Align(
           alignment: Alignment.center,
-          child: Center(
-            child: GestureDetector(
-              onTap: () {
-                toggleControls();
-              },
-              onDoubleTap: () {
-                togglePlay();
-              },
-              child: AspectRatio(
-                aspectRatio: controller?.value?.aspectRatio ?? 1,
-                child: SizedBox(
-                  height: videoHeight,
-                  width: videoWidth,
-                  child: controller?.value?.initialized == true
-                      ? VideoPlayer(controller)
-                      : null,
-                ),
+          child: GestureDetector(
+            onTap: () {
+              toggleControls();
+            },
+            onDoubleTap: () {
+              togglePlay();
+            },
+            child: AspectRatio(
+              aspectRatio: controller?.value?.aspectRatio ?? 1,
+              child: SizedBox(
+                height: videoHeight,
+                width: videoWidth,
+                child: controller?.value?.initialized == true
+                    ? VideoPlayer(controller)
+                    : null,
               ),
             ),
           ),
@@ -343,23 +341,24 @@ class _YoYoPlayerState extends State<YoYoPlayer>
                   Container(
                     width: 5,
                   ),
-                  topchip(
-                    Text(m3u8quality, style: widget.videoStyle.qualitystyle),
-                    () {
-                      // quality function
-                      m3u8show = true;
-                    },
-                  ),
+                  if (widget.url?.contains('m3u8'))
+                    topchip(
+                      Text(m3u8quality, style: widget.videoStyle.qualitystyle),
+                      () {
+                        // quality function
+                        m3u8show = true;
+                      },
+                    ),
                   Container(
                     width: 5,
                   ),
-                  InkWell(
-                    onTap: () => toggleFullScreen(),
-                    child: Icon(
-                      Icons.fullscreen,
-                      color: Colors.white,
-                    ),
-                  ),
+                  // InkWell(
+                  //   onTap: () => toggleFullScreen(),
+                  //   child: Icon(
+                  //     Icons.fullscreen,
+                  //     color: Colors.white,
+                  //   ),
+                  // ),
                   Container(
                     width: 5,
                   ),
