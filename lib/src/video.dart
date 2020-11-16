@@ -259,8 +259,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
   @override
   Widget build(BuildContext context) {
     printLog("-----------> build <-----------");
-    final videoHeight = controller?.value?.size?.height;
-    final videoWidth = controller?.value?.size?.width;
+
     final videoChildrens = <Widget>[
       LayoutBuilder(builder: (context, constrain) {
         return Align(
@@ -274,13 +273,9 @@ class _YoYoPlayerState extends State<YoYoPlayer>
             },
             child: AspectRatio(
               aspectRatio: controller?.value?.aspectRatio ?? 1,
-              child: SizedBox(
-                height: videoHeight,
-                width: videoWidth,
-                child: controller?.value?.initialized == true
-                    ? VideoPlayer(controller)
-                    : null,
-              ),
+              child: controller?.value?.initialized == true
+                  ? VideoPlayer(controller)
+                  : null,
             ),
           ),
         );
@@ -300,7 +295,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
                 )
               : widget.videoLoadingStyle.loading);
     }
-    print("=====>> Case normal");
+    print("=====>> Case normal ${controller?.value?.aspectRatio}");
     return AspectRatio(
       aspectRatio: controller?.value?.aspectRatio ?? 1,
       child: (controller?.value?.initialized ?? false)
