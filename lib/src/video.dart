@@ -58,9 +58,14 @@ class YoYoPlayer extends StatefulWidget {
   /// video Type
   final VideoCallback<String> onpeningvideo;
 
+  /// show log of print
   final bool showLog;
 
+  /// event player
   final EventPlayer event;
+
+  /// show control
+  final bool isShowControl;
 
   ///
   /// ```dart
@@ -85,6 +90,7 @@ class YoYoPlayer extends StatefulWidget {
     this.onfullscreen,
     this.onpeningvideo,
     this.showLog = false,
+    this.isShowControl = true,
   }) : super(key: key);
 
   @override
@@ -278,8 +284,9 @@ class _YoYoPlayerState extends State<YoYoPlayer>
           child: VideoPlayer(controller),
         ),
       ),
+      if (widget.isShowControl) ...videoBuiltInChildrens()
     ];
-    videoChildrens.addAll(videoBuiltInChildrens());
+
     return AspectRatio(
       aspectRatio: fullscreen
           ? calculateAspectRatio(context, screenSize)
