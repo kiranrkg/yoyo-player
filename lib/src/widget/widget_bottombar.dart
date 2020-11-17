@@ -56,16 +56,16 @@ Widget bottomBar(
                         mainAxisAlignment: MainAxisAlignment.center,
                         mainAxisSize: MainAxisSize.max,
                         children: [
-                          InkWell(
-                            onTap: () {
-                              rewind(controller);
-                            },
-                            child: Icon(
-                              Icons.skip_previous,
-                              color: Colors.white,
-                              size: 30,
-                            ),
-                          ),
+                          // InkWell(
+                          //   onTap: () {
+                          //     rewind(controller);
+                          //   },
+                          //   child: Icon(
+                          //     Icons.skip_previous,
+                          //     color: Colors.white,
+                          //     size: 30,
+                          //   ),
+                          // ),
                           InkWell(
                             onTap: play,
                             child: Icon(
@@ -76,16 +76,16 @@ Widget bottomBar(
                               size: 35,
                             ),
                           ),
-                          InkWell(
-                            onTap: () {
-                              fastForward(controller: controller);
-                            },
-                            child: Icon(
-                              Icons.skip_next,
-                              color: Colors.white,
-                              size: 30,
-                            ),
-                          ),
+                          // InkWell(
+                          //   onTap: () {
+                          //     fastForward(controller: controller);
+                          //   },
+                          //   child: Icon(
+                          //     Icons.skip_next,
+                          //     color: Colors.white,
+                          //     size: 30,
+                          //   ),
+                          // ),
                         ],
                       ),
                     ),
