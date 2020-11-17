@@ -533,7 +533,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
               String audiourl = (regExpMatch2.group(1)).toString();
               final isNetwork = netRegx.hasMatch(audiourl);
               final match = netRegx2.firstMatch(video);
-              String auurl = audiourl;
+              var auurl = audiourl;
               if (isNetwork) {
                 auurl = audiourl;
               } else {
@@ -546,27 +546,29 @@ class _YoYoPlayerState extends State<YoYoPlayer>
               printLog(audiourl);
             },
           );
-          String audio = "";
+          var audio = "";
           printLog("-- audio ---\naudio list length :${audio.length}");
-          if (audioList.length != 0) {
+          if (audioList.isNotEmpty) {
             audio =
                 """#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="audio-medium",NAME="audio",AUTOSELECT=YES,DEFAULT=YES,CHANNELS="2",URI="${audioList.last.url}"\n""";
           } else {
             audio = "";
           }
+          final directory = await getApplicationDocumentsDirectory();
+
           try {
-            final Directory directory =
-                await getApplicationDocumentsDirectory();
-            final File file = File('${directory.path}/yoyo$quality.m3u8');
+            final file = File('${directory.path}/yoyo$quality.m3u8');
             await file.writeAsString(
                 """#EXTM3U\n#EXT-X-INDEPENDENT-SEGMENTS\n$audio#EXT-X-STREAM-INF:CLOSED-CAPTIONS=NONE,BANDWIDTH=1469712,RESOLUTION=$quality,FRAME-RATE=30.000\n$url""");
+            print("------>> write done ${directory.path}/yoyo$quality.m3u8");
           } catch (e) {
-            printLog("Couldn't write file");
+            print(
+                "------>> Couldn't write file ${directory.path}/yoyo$quality.m3u8");
           }
           yoyo.add(M3U8pass(dataquality: quality, dataurl: url));
         },
       );
-      M3U8s m3u8s = M3U8s(m3u8s: yoyo);
+      final m3u8s = M3U8s(m3u8s: yoyo);
       printLog(
           "--- m3u8 file write ---\n${yoyo.map((e) => e.dataquality == e.dataurl).toList()}\nlength : ${yoyo.length}\nSuccess");
       return m3u8s;
@@ -579,6 +581,10 @@ class _YoYoPlayerState extends State<YoYoPlayer>
 // Video controller
   void videoControllSetup(String url) {
     printLog("-----------> videoControllSetup <----------- :: $url");
+    if (controller?.value?.initialized ?? false) {
+      controller?.removeListener?.call(listener);
+      controller = null;
+    }
     videoInit(url);
     controller.addListener(listener);
   }
@@ -588,29 +594,27 @@ class _YoYoPlayerState extends State<YoYoPlayer>
   void listener() async {
     if (_disableListener) return;
     printLog("-----------> listener <-----------");
-    if (timeListenner == null) {
-      timeListenner = Timer(Duration(milliseconds: 600), () async {
-        if ((controller?.value?.initialized ?? false) &&
-            (controller?.value?.isPlaying ?? false)) {
-          if (!await Wakelock.enabled) {
-            await Wakelock.enable();
-          }
-          videoDuration = convertDurationToString(controller?.value?.duration);
-          videoSeek = convertDurationToString(controller?.value?.position);
-          videoSeekSecond = controller?.value?.position?.inSeconds?.toDouble();
-          videoDurationSecond =
-              controller?.value?.duration?.inSeconds?.toDouble();
+    timeListenner ??= Timer(const Duration(milliseconds: 600), () async {
+      if ((controller?.value?.initialized ?? false) &&
+          (controller?.value?.isPlaying ?? false)) {
+        if (!await Wakelock.enabled) {
+          await Wakelock.enable();
+        }
+        videoDuration = convertDurationToString(controller?.value?.duration);
+        videoSeek = convertDurationToString(controller?.value?.position);
+        videoSeekSecond = controller?.value?.position?.inSeconds?.toDouble();
+        videoDurationSecond =
+            controller?.value?.duration?.inSeconds?.toDouble();
+        if (!mounted) return;
+        setState(() {});
+      } else {
+        if (await Wakelock.enabled) {
           if (!mounted) return;
           setState(() {});
-        } else {
-          if (await Wakelock.enabled) {
-            if (!mounted) return;
-            setState(() {});
-          }
         }
-        timeListenner = null;
-      });
-    }
+      }
+      timeListenner = null;
+    });
   }
 
   void createHideControlbarTimer() {
@@ -744,15 +748,19 @@ class _YoYoPlayerState extends State<YoYoPlayer>
       videoControllSetup(data.dataurl);
     } else {
       try {
-        String text;
-        final Directory directory = await getApplicationDocumentsDirectory();
-        final File file =
-            File('${directory.path}/yoyo${data.dataquality}.m3u8');
-        printLog("read file success");
-        text = await file.readAsString();
-        printLog("data : $text  :: data");
-        localm3u8play(file);
-        // videoControllSetup(file);
+        if (Platform.isAndroid) {
+          String text;
+          final Directory directory = await getApplicationDocumentsDirectory();
+          final File file =
+              File('${directory.path}/yoyo${data.dataquality}.m3u8');
+          printLog("read file success");
+          text = await file.readAsString();
+          printLog("data : $text  :: data");
+          localm3u8play(file);
+          // videoControllSetup(file);
+        } else {
+          videoControllSetup(data.dataurl);
+        }
       } catch (e) {
         printLog("Couldn't read file ${data.dataquality} e: $e");
       }
@@ -762,9 +770,8 @@ class _YoYoPlayerState extends State<YoYoPlayer>
 
   void localm3u8play(File file) {
     printLog("-----------> localm3u8play <-----------");
-    controller = VideoPlayerController.file(
-      file,
-    )
+
+    controller = VideoPlayerController.file(file)
       ..setLooping(widget.isLooping)
       ..initialize().then((_) {
         controller?.pause();
@@ -778,12 +785,13 @@ class _YoYoPlayerState extends State<YoYoPlayer>
   void m3u8clean() async {
     printLog("-----------> m3u8clean <-----------");
     printLog(yoyo.length);
-    for (int i = 2; i < yoyo.length; i++) {
+    for (var i = 2; i < yoyo.length; i++) {
       try {
-        final Directory directory = await getApplicationDocumentsDirectory();
-        final File file = File('${directory.path}/${yoyo[i].dataquality}.m3u8');
-        file.delete();
-        printLog("delete success $file");
+        final directory = await getApplicationDocumentsDirectory();
+        final file = File('${directory.path}/${yoyo[i].dataquality}.m3u8');
+        file?.delete()?.catchError((e) {
+          printLog("delete error $file");
+        })?.then((value) => printLog("delete success $file"));
       } catch (e) {
         printLog("Couldn't delete file $e");
       }
