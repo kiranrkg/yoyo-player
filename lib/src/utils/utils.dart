@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:yoyo_player/src/model/m3u8.dart';
 
 double calculateAspectRatio(BuildContext context, Size screenSize) {
   final width = screenSize.width;
@@ -6,3 +7,108 @@ double calculateAspectRatio(BuildContext context, Size screenSize) {
   // return widget.playOptions.aspectRatio ?? controller.value.aspectRatio;
   return width > height ? width / height : height / width;
 }
+
+String getNameResolution(String resolution) {
+  if (resolution.toUpperCase() == "AUTO") {
+    return "AUTO";
+  }
+  final quanlity = int.parse(resolution);
+
+  if (quanlity > 699) {
+    return "HIGH";
+  }
+  if (quanlity > 599) {
+    return "MEDIUM";
+  }
+  if (quanlity > 399) {
+    return "SLOW";
+  }
+  return "UNKNOWN";
+}
+
+QuanlityVideo getTypeResolution(String resolution) {
+  if (resolution.toUpperCase() == "AUTO") {
+    return QuanlityVideo.AUTO;
+  }
+  final quanlity = int.parse(resolution);
+
+  if (quanlity > 699) {
+    return QuanlityVideo.HIGH;
+  }
+  if (quanlity > 599) {
+    return QuanlityVideo.MEDIUM;
+  }
+  if (quanlity > 399) {
+    return QuanlityVideo.SLOW;
+  }
+  return QuanlityVideo.UNKNOWN;
+}
+
+enum QuanlityVideo { AUTO, HIGH, MEDIUM, SLOW, UNKNOWN }
+
+Map quanlityVideo = {
+  QuanlityVideo.HIGH: "HIGH",
+  QuanlityVideo.MEDIUM: "MEDIUM",
+  QuanlityVideo.SLOW: "SLOW",
+  QuanlityVideo.AUTO: "AUTO",
+  QuanlityVideo.UNKNOWN: "UNKNOWN",
+};
+
+Map _quanlityVideoMap = {
+  "HIGH": QuanlityVideo.HIGH,
+  "MEDIUM": QuanlityVideo.MEDIUM,
+  "SLOW": QuanlityVideo.SLOW,
+  "AUTO": QuanlityVideo.AUTO,
+  "UNKNOWN": QuanlityVideo.UNKNOWN,
+};
+
+QuanlityVideo getQuanlity(String nameQuanlity) =>
+    _quanlityVideoMap[nameQuanlity.toUpperCase()];
+
+QuanlityVideo isResolution(String resolution) {
+  if (resolution.toUpperCase() == "AUTO".toUpperCase()) {
+    return QuanlityVideo.AUTO;
+  }
+  final quanlity = int.parse(resolution);
+
+  if (quanlity > 699) {
+    return QuanlityVideo.HIGH;
+  }
+  if (quanlity > 499) {
+    return QuanlityVideo.MEDIUM;
+  }
+  if (quanlity < 499) {
+    return QuanlityVideo.SLOW;
+  }
+  return QuanlityVideo.UNKNOWN;
+}
+
+Future<Map> getCurrentQuanlity(
+    List<M3U8pass> listQuanlity, QuanlityVideo currentQuanlity) async {
+  Map resultAuto;
+  Map result;
+  for (final item in listQuanlity) {
+    final mathQuanlity = item.dataquality.split('x');
+    final quanlity =
+        ((mathQuanlity?.length ?? 0) > 1) ? mathQuanlity[1] : item.dataquality;
+
+    final _currentQuanlity = isResolution(quanlity);
+    if ("$quanlity".toLowerCase() == "auto".toLowerCase()) {
+      resultAuto = {
+        'info': item,
+        'type': QuanlityVideo.AUTO,
+      };
+    }
+
+    if (_currentQuanlity == currentQuanlity) {
+      result = {
+        'info': item,
+        'type': _currentQuanlity,
+      };
+      break;
+    }
+  }
+
+  return result ?? resultAuto;
+}
+//1605742962252-

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
-import 'package:yoyo_player/src/responses/play_response.dart';
 
 Widget bottomBar(
     {VideoPlayerController controller,
@@ -14,7 +13,7 @@ Widget bottomBar(
           child: Container(
             height: 40,
             child: Padding(
-              padding: EdgeInsets.all(0.0),
+              padding: const EdgeInsets.all(0.0),
               child: Stack(
                 children: [
                   Column(
@@ -23,72 +22,70 @@ Widget bottomBar(
                         controller,
                         allowScrubbing: true,
                         colors: VideoProgressColors(
-                            playedColor: Color.fromARGB(250, 0, 255, 112)),
-                        padding: EdgeInsets.only(left: 5.0, right: 5),
+                          playedColor: Colors.white,
+                        ),
+                        padding: const EdgeInsets.only(left: 5.0, right: 5),
                       ),
-                      Padding(
-                        padding: EdgeInsets.only(left: 5.0, right: 5.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              videoSeek,
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white),
-                            ),
-                            Text(
-                              videoDuration,
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white),
-                            ),
-                          ],
+                      Align(
+                        alignment: Alignment.bottomLeft,
+                        child: Padding(
+                          padding: const EdgeInsets.only(left: 10),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.max,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              InkWell(
+                                onTap: play,
+                                child: Icon(
+                                  controller.value.isPlaying
+                                      ? Icons.pause
+                                      : Icons.play_arrow,
+                                  color: Colors.white,
+                                  size: 35,
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.only(
+                                    left: 5.0, right: 5.0),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    SizedBox(
+                                      width: 35,
+                                      child: Text(
+                                        videoSeek,
+                                        textAlign: TextAlign.center,
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white),
+                                      ),
+                                    ),
+                                    const Text(
+                                      "/",
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white),
+                                    ),
+                                    SizedBox(
+                                      width: 35,
+                                      child: Text(
+                                        videoDuration,
+                                        textAlign: TextAlign.center,
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ],
-                  ),
-                  Align(
-                    alignment: Alignment.bottomCenter,
-                    child: Padding(
-                      padding: EdgeInsets.all(5.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        mainAxisSize: MainAxisSize.max,
-                        children: [
-                          // InkWell(
-                          //   onTap: () {
-                          //     rewind(controller);
-                          //   },
-                          //   child: Icon(
-                          //     Icons.skip_previous,
-                          //     color: Colors.white,
-                          //     size: 30,
-                          //   ),
-                          // ),
-                          InkWell(
-                            onTap: play,
-                            child: Icon(
-                              controller.value.isPlaying
-                                  ? Icons.play_circle_outline
-                                  : Icons.pause_circle_outline,
-                              color: Colors.white,
-                              size: 35,
-                            ),
-                          ),
-                          // InkWell(
-                          //   onTap: () {
-                          //     fastForward(controller: controller);
-                          //   },
-                          //   child: Icon(
-                          //     Icons.skip_next,
-                          //     color: Colors.white,
-                          //     size: 30,
-                          //   ),
-                          // ),
-                        ],
-                      ),
-                    ),
                   ),
                 ],
               ),
