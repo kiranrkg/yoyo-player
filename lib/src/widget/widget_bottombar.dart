@@ -5,9 +5,10 @@ Widget bottomBar(
     {VideoPlayerController controller,
     String videoSeek,
     String videoDuration,
-    bool showMeau,
+    bool showMenu,
+    Widget quanlity,
     Function play}) {
-  return showMeau
+  return showMenu
       ? Align(
           alignment: Alignment.bottomCenter,
           child: Container(
@@ -81,6 +82,13 @@ Widget bottomBar(
                                   ],
                                 ),
                               ),
+                              if (quanlity != null)
+                                Expanded(
+                                  child: Align(
+                                    alignment: Alignment.centerRight,
+                                    child: quanlity,
+                                  ),
+                                ),
                             ],
                           ),
                         ),

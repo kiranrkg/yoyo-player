@@ -21,7 +21,7 @@ String getNameResolution(String resolution) {
     return "MEDIUM";
   }
   if (quanlity > 399) {
-    return "SLOW";
+    return "LOW";
   }
   return "UNKNOWN";
 }
@@ -39,31 +39,31 @@ QuanlityVideo getTypeResolution(String resolution) {
     return QuanlityVideo.MEDIUM;
   }
   if (quanlity > 399) {
-    return QuanlityVideo.SLOW;
+    return QuanlityVideo.LOW;
   }
   return QuanlityVideo.UNKNOWN;
 }
 
-enum QuanlityVideo { AUTO, HIGH, MEDIUM, SLOW, UNKNOWN }
+enum QuanlityVideo { AUTO, HIGH, MEDIUM, LOW, UNKNOWN }
 
-Map quanlityVideo = {
+Map quanlityName = {
   QuanlityVideo.HIGH: "HIGH",
   QuanlityVideo.MEDIUM: "MEDIUM",
-  QuanlityVideo.SLOW: "SLOW",
+  QuanlityVideo.LOW: "LOW",
   QuanlityVideo.AUTO: "AUTO",
   QuanlityVideo.UNKNOWN: "UNKNOWN",
 };
 
-Map _quanlityVideoMap = {
+Map quanlityType = {
   "HIGH": QuanlityVideo.HIGH,
   "MEDIUM": QuanlityVideo.MEDIUM,
-  "SLOW": QuanlityVideo.SLOW,
+  "LOW": QuanlityVideo.LOW,
   "AUTO": QuanlityVideo.AUTO,
   "UNKNOWN": QuanlityVideo.UNKNOWN,
 };
 
 QuanlityVideo getQuanlity(String nameQuanlity) =>
-    _quanlityVideoMap[nameQuanlity.toUpperCase()];
+    quanlityType[nameQuanlity.toUpperCase()];
 
 QuanlityVideo isResolution(String resolution) {
   if (resolution.toUpperCase() == "AUTO".toUpperCase()) {
@@ -78,7 +78,7 @@ QuanlityVideo isResolution(String resolution) {
     return QuanlityVideo.MEDIUM;
   }
   if (quanlity < 499) {
-    return QuanlityVideo.SLOW;
+    return QuanlityVideo.LOW;
   }
   return QuanlityVideo.UNKNOWN;
 }
