@@ -163,6 +163,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
   bool offline;
   // video auto quality
   String m3u8quality = "Auto";
+  String m3u8qualitySYS = "Auto";
   // time for duration
   Timer showTime;
   //Current ScreenSize
@@ -186,6 +187,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
     printLog("-----------> initState <-----------");
     // getsub();
     currentQuanlity = widget.quanlity;
+    m3u8qualitySYS = quanlityName[widget.quanlity];
     urlcheck(widget.url);
     super.initState();
 
@@ -247,33 +249,31 @@ class _YoYoPlayerState extends State<YoYoPlayer>
           _videoController?.addListener(listEventListener[key]);
         };
     }
-    widget.event.play = () => actionWhenVideoActive(() async {
-          createHideControlbarTimer();
-          await _videoController.play();
-          // _disableListener = false;
-          if (mounted) {
-            setState(() {});
-          }
-        });
-    widget.event.pause = () => actionWhenVideoActive(() async {
-          // _disableListener = true;
-          createHideControlbarTimer();
-          await _videoController.pause();
-          if (mounted) {
-            setState(() {});
-          }
-        });
+    widget.event.play = () {
+      createHideControlbarTimer();
+      playVideo();
+    };
+    widget.event.pause = () {
+      createHideControlbarTimer();
+      pauseVideo();
+    };
 
-    widget.event.isPlaying = _videoController?.value?.isPlaying ?? false;
+    widget.event.isPlaying = () {
+      return _videoController?.value?.isPlaying ?? false;
+    };
     widget.event.isNotNull = _videoController != null &&
         (_videoController?.value?.initialized ?? false);
     widget.event.position = _videoController?.value?.duration;
     widget.event.aspectRatio = _videoController?.value?.aspectRatio;
-    widget.event.updateQuanlity = (quanlity) {
-      if (quanlity.toUpperCase() != m3u8quality.toUpperCase()) {
-        _quanlityController.add(quanlity);
-      }
-    };
+    widget.event.updateQuanlity = updateQuanlity;
+  }
+
+  Future<bool> updateQuanlity(String quanlity) async {
+    if (quanlity.toUpperCase() != m3u8qualitySYS?.toUpperCase()) {
+      _quanlityController.add(quanlity);
+      return true;
+    }
+    return false;
   }
 
   void actionWhenVideoActive(Function func) {
@@ -315,12 +315,15 @@ class _YoYoPlayerState extends State<YoYoPlayer>
       stream: _quanlityController.stream,
       builder: (context, snapshot) {
         if (snapshot?.data != null &&
-            m3u8quality.toUpperCase() != snapshot.data) {
-          m3u8quality = snapshot.data;
+            m3u8qualitySYS.toUpperCase() != snapshot.data) {
           m3u8show = false;
-          currentQuanlity = quanlityType[snapshot.data];
-          widget.onChangeQuanlity?.call(currentQuanlity);
-          getCurrentQuanlity(yoyo, currentQuanlity).then((videoHLS) {
+          m3u8qualitySYS = snapshot.data;
+          widget.onChangeQuanlity?.call(quanlityType[m3u8qualitySYS]);
+
+          getCurrentQuanlity(yoyo, quanlityType[m3u8qualitySYS])
+              .then((videoHLS) {
+            m3u8quality = quanlityName[videoHLS['type']];
+            currentQuanlity = quanlityType[m3u8quality];
             onselectquality(videoHLS['info']);
           });
         }
@@ -449,6 +452,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
                       onTap: () {
                         m3u8quality = nameQuanlity;
                         m3u8show = false;
+                        m3u8qualitySYS = quanlity;
                         widget.onChangeQuanlity?.call(isResolution(quanlity));
                         onselectquality(e);
                         _quanlityController.add(m3u8quality);
@@ -972,6 +976,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
                   onTap: () {
                     m3u8quality = nameQuanlity;
                     m3u8show = false;
+                    m3u8qualitySYS = quanlity;
                     widget.onChangeQuanlity?.call(isResolution(quanlity));
                     onselectquality(e);
                     _quanlityController.add(m3u8quality);

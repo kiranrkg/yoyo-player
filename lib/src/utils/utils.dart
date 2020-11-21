@@ -35,10 +35,10 @@ QuanlityVideo getTypeResolution(String resolution) {
   if (quanlity > 699) {
     return QuanlityVideo.HIGH;
   }
-  if (quanlity > 599) {
+  if (quanlity > 499) {
     return QuanlityVideo.MEDIUM;
   }
-  if (quanlity > 399) {
+  if (quanlity < 499) {
     return QuanlityVideo.LOW;
   }
   return QuanlityVideo.UNKNOWN;
@@ -85,20 +85,21 @@ QuanlityVideo isResolution(String resolution) {
 
 Future<Map> getCurrentQuanlity(
     List<M3U8pass> listQuanlity, QuanlityVideo currentQuanlity) async {
-  Map resultAuto;
   Map result;
+  final itemDefault = listQuanlity.first;
+  final mathQuanlity = itemDefault.dataquality.split('x');
+  final quanlityDefault = ((mathQuanlity?.length ?? 0) > 1)
+      ? mathQuanlity[1]
+      : itemDefault.dataquality;
+  final resultAuto = {
+    'info': itemDefault,
+    'type': isResolution(quanlityDefault),
+  };
   for (final item in listQuanlity) {
     final mathQuanlity = item.dataquality.split('x');
     final quanlity =
         ((mathQuanlity?.length ?? 0) > 1) ? mathQuanlity[1] : item.dataquality;
-
     final _currentQuanlity = isResolution(quanlity);
-    if ("$quanlity".toLowerCase() == "auto".toLowerCase()) {
-      resultAuto = {
-        'info': item,
-        'type': QuanlityVideo.AUTO,
-      };
-    }
 
     if (_currentQuanlity == currentQuanlity) {
       result = {
