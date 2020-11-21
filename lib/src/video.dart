@@ -261,10 +261,11 @@ class _YoYoPlayerState extends State<YoYoPlayer>
     widget.event.isPlaying = () {
       return _videoController?.value?.isPlaying ?? false;
     };
-    widget.event.isNotNull = _videoController != null &&
+    widget.event.isNotNull = () =>
+        _videoController != null &&
         (_videoController?.value?.initialized ?? false);
-    widget.event.position = _videoController?.value?.duration;
-    widget.event.aspectRatio = _videoController?.value?.aspectRatio;
+    widget.event.position = () => _videoController?.value?.duration;
+    widget.event.aspectRatio = () => _videoController?.value?.aspectRatio;
     widget.event.updateQuanlity = updateQuanlity;
   }
 
@@ -704,15 +705,9 @@ class _YoYoPlayerState extends State<YoYoPlayer>
     _videoController.addListener(listener);
   }
 
-// video Listener
-  // Timer timeListenner;
   void listener() async {
     printLog("-----------> listener <-----------");
     if (isStopListener && !(_videoController.value.isPlaying ?? true)) return;
-    // timeListenner ??= Timer(const Duration(milliseconds: 600), () async {
-
-    //   // timeListenner = null;
-    // });
 
     if ((_videoController?.value?.initialized ?? false) &&
         (_videoController?.value?.isPlaying ?? false)) {

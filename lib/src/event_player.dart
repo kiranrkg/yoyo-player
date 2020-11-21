@@ -5,11 +5,9 @@ class EventPlayer {
   Future<bool> Function(String) updateQuanlity;
   Function(BuildContext) showOptionQuanlity;
   bool Function() isPlaying;
-
   Function() pause;
   Function() play;
-  double aspectRatio;
-  Duration position;
-
-  bool isNotNull;
+  double Function() aspectRatio;
+  Duration Function() position;
+  bool Function() isNotNull;
 }
