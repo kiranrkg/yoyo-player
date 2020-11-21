@@ -78,8 +78,6 @@ class YoYoPlayer extends StatefulWidget {
 
   final Function(QuanlityVideo) onChangeQuanlity;
 
-  final StreamController<String> quanlityController;
-
   ///
   /// ```dart
   /// YoYoPlayer(
@@ -97,7 +95,6 @@ class YoYoPlayer extends StatefulWidget {
     Key key,
     @required this.url,
     @required this.aspectRatio,
-    @required this.quanlityController,
     this.event,
     this.videoStyle,
     this.videoLoadingStyle,
@@ -119,6 +116,8 @@ class YoYoPlayer extends StatefulWidget {
 
 class _YoYoPlayerState extends State<YoYoPlayer>
     with SingleTickerProviderStateMixin {
+  final _quanlityController = StreamController<String>();
+
   VideoPlayerController _videoController;
   // event player
 
@@ -272,7 +271,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
     widget.event.aspectRatio = _videoController?.value?.aspectRatio;
     widget.event.updateQuanlity = (quanlity) {
       if (quanlity.toUpperCase() != m3u8quality.toUpperCase()) {
-        widget.quanlityController.add(quanlity);
+        _quanlityController.add(quanlity);
       }
     };
   }
@@ -313,7 +312,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
     printLog("-----------> build <-----------");
 
     return StreamBuilder<String>(
-      stream: widget.quanlityController.stream,
+      stream: _quanlityController.stream,
       builder: (context, snapshot) {
         if (snapshot?.data != null &&
             m3u8quality.toUpperCase() != snapshot.data) {
@@ -452,7 +451,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
                         m3u8show = false;
                         widget.onChangeQuanlity?.call(isResolution(quanlity));
                         onselectquality(e);
-                        widget.quanlityController.add(m3u8quality);
+                        _quanlityController.add(m3u8quality);
                         printLog(
                             "--- quality select ---\nquality : ${e.dataquality}\nlink : ${e.dataurl}");
                       },
@@ -975,7 +974,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
                     m3u8show = false;
                     widget.onChangeQuanlity?.call(isResolution(quanlity));
                     onselectquality(e);
-                    widget.quanlityController.add(m3u8quality);
+                    _quanlityController.add(m3u8quality);
                     printLog(
                         "--- quality select ---\nquality : ${e.dataquality}\nlink : ${e.dataurl}");
                     Navigator.of(context).pop(true);
