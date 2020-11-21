@@ -39,7 +39,7 @@ Widget bottomBar(
                               InkWell(
                                 onTap: play,
                                 child: Icon(
-                                  controller.value.isPlaying
+                                  (controller?.value?.isPlaying ?? false)
                                       ? Icons.pause
                                       : Icons.play_arrow,
                                   color: Colors.white,
