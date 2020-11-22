@@ -830,8 +830,11 @@ class _YoYoPlayerState extends State<YoYoPlayer>
             VideoPlayerController.network(url, formatHint: VideoFormat.other)
               ..setLooping(widget.isLooping)
               ..initialize().then((value) {
-                pauseVideo();
                 widget.onInitCompleted?.call(_videoController);
+                setStateMounted(() => hasInitError = false);
+              }).catchError((e) {
+                widget.refeshPlayer?.call(getKeyRefesh);
+                setStateMounted(() => hasInitError = true);
               });
       }
     } else {
@@ -840,10 +843,12 @@ class _YoYoPlayerState extends State<YoYoPlayer>
       _videoController = VideoPlayerController.file(File(url))
         ..setLooping(widget.isLooping)
         ..initialize().then((value) {
-          pauseVideo();
           widget.onInitCompleted?.call(_videoController);
           setStateMounted(() => hasInitError = false);
-        }).catchError((e) => setStateMounted(() => hasInitError = true));
+        }).catchError((e) {
+          widget.refeshPlayer?.call(getKeyRefesh);
+          setStateMounted(() => hasInitError = true);
+        });
     }
   }
 
