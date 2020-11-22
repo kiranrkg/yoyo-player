@@ -700,17 +700,24 @@ class _YoYoPlayerState extends State<YoYoPlayer>
   }
 
 // video Listener
+  String get getKeyRefesh =>
+      "${DateTime.now().millisecondsSinceEpoch}_${widget.hashCode}";
   Timer timeListenner;
   Timer timeHasErrorListenner;
+  int countFree = 0;
+  String saveTime = '';
   final _videoSeekStream = StreamController<String>.broadcast();
+  bool checkFreezingApp() {
+    return countFree >= 2 ? true : false;
+  }
 
   void listener() async {
     printLog("-----------> listener <-----------");
-    if (_videoController?.value?.hasError ?? false) {
+    if ((_videoController?.value?.hasError ?? false) || checkFreezingApp()) {
       timeHasErrorListenner ??=
-          Timer(const Duration(milliseconds: 3000), () async {
-        pauseVideo();
-        widget.refeshPlayer?.call('${widget.hashCode}');
+          Timer(const Duration(milliseconds: 2000), () async {
+        countFree = 0;
+        widget.refeshPlayer?.call(getKeyRefesh);
         timeHasErrorListenner = null;
       });
     }
@@ -724,7 +731,12 @@ class _YoYoPlayerState extends State<YoYoPlayer>
       videoDuration =
           convertDurationToString(_videoController?.value?.duration);
       videoSeek = convertDurationToString(_videoController?.value?.position);
+
       timeListenner ??= Timer(const Duration(milliseconds: 600), () async {
+        if (saveTime == videoSeek) {
+          countFree++;
+        }
+        saveTime = videoSeek;
         if ((_videoSeekStream?.isClosed ?? true) == false) {
           _videoSeekStream?.sink?.add?.call(videoSeek);
         }
@@ -811,7 +823,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
                 setStateMounted(() => hasInitError = false);
               }).catchError((e) {
                 hasInitError = true;
-                widget.refeshPlayer?.call('${widget.hashCode}');
+                widget.refeshPlayer?.call(getKeyRefesh);
               });
       } else {
         _videoController =
@@ -905,6 +917,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
 
   void pauseVideo() {
     if (_videoController?.value?.initialized ?? false) {
+      // ignore: avoid_print
       print("-------> Pause Video");
       _videoController.pause();
     }
@@ -912,6 +925,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
 
   void playVideo() {
     if (_videoController?.value?.initialized ?? false) {
+      // ignore: avoid_print
       print("-------> Play Video");
       _videoController.play();
     }

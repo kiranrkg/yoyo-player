@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:yoyo_player/src/model/m3u8.dart';
+import '../model/m3u8.dart';
 
 double calculateAspectRatio(BuildContext context, Size screenSize) {
   final width = screenSize.width;
