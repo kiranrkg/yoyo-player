@@ -49,7 +49,7 @@ class YoYoPlayer extends StatefulWidget {
   final VideoLoadingStyle videoLoadingStyle;
 
   /// Video AspectRaitio [aspectRatio : 16 / 9 ]
-  final double aspectRatio;
+  // final double aspectRatio;
 
   /// video state fullscreen
   final VideoCallback<bool> onfullscreen;
@@ -78,6 +78,8 @@ class YoYoPlayer extends StatefulWidget {
 
   final Function(QuanlityVideo) onChangeQuanlity;
 
+  final Function(String) refeshPlayer;
+
   ///
   /// ```dart
   /// YoYoPlayer(
@@ -94,7 +96,7 @@ class YoYoPlayer extends StatefulWidget {
   YoYoPlayer({
     Key key,
     @required this.url,
-    @required this.aspectRatio,
+    // @required this.aspectRatio,
     this.event,
     this.videoStyle,
     this.videoLoadingStyle,
@@ -108,6 +110,7 @@ class YoYoPlayer extends StatefulWidget {
     this.autoHideOptionM3U8 = true,
     this.quanlity = QuanlityVideo.AUTO,
     this.onChangeQuanlity,
+    this.refeshPlayer,
   }) : super(key: key);
 
   @override
@@ -116,8 +119,6 @@ class YoYoPlayer extends StatefulWidget {
 
 class _YoYoPlayerState extends State<YoYoPlayer>
     with SingleTickerProviderStateMixin {
-  final _quanlityController = StreamController<String>();
-
   VideoPlayerController _videoController;
   // event player
 
@@ -150,7 +151,8 @@ class _YoYoPlayerState extends State<YoYoPlayer>
   // subtitle temp data
   String subtitleContent;
   // menu show m3u8 list
-  bool m3u8show = false;
+  final _m3u8showStream = StreamController<bool>.broadcast();
+
   // video full screen
   bool fullscreen = false;
   // menu show
@@ -184,12 +186,12 @@ class _YoYoPlayerState extends State<YoYoPlayer>
 
   @override
   void initState() {
+    super.initState();
     printLog("-----------> initState <-----------");
     // getsub();
     currentQuanlity = widget.quanlity;
     m3u8qualitySYS = quanlityName[widget.quanlity];
     urlcheck(widget.url);
-    super.initState();
 
     /// Control bar animation
     controlBarAnimationController = AnimationController(
@@ -214,7 +216,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
           SystemChrome.setEnabledSystemUIOverlays(SystemUiOverlay.values);
         }
         if (_fullscreen != fullscreen) {
-          setState(() {
+          setStateMounted(() {
             fullscreen = !fullscreen;
             _navigateLocally(context);
             if (widget.onfullscreen != null) {
@@ -258,9 +260,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
       pauseVideo();
     };
 
-    widget.event.isPlaying = () {
-      return _videoController?.value?.isPlaying ?? false;
-    };
+    widget.event.isPlaying = () => _videoController?.value?.isPlaying ?? false;
     widget.event.isNotNull = () =>
         _videoController != null &&
         (_videoController?.value?.initialized ?? false);
@@ -270,8 +270,9 @@ class _YoYoPlayerState extends State<YoYoPlayer>
   }
 
   Future<bool> updateQuanlity(String quanlity) async {
-    if (quanlity.toUpperCase() != m3u8qualitySYS?.toUpperCase()) {
-      _quanlityController.add(quanlity);
+    if (quanlity?.toUpperCase() != m3u8qualitySYS?.toUpperCase()) {
+      pauseVideo();
+      widget.onChangeQuanlity?.call(quanlityType[quanlity]);
       return true;
     }
     return false;
@@ -304,36 +305,18 @@ class _YoYoPlayerState extends State<YoYoPlayer>
   @override
   void dispose() {
     printLog("-----------> dispose <-----------");
+    _videoSeekStream?.close();
+    _m3u8showStream?.close();
     disposeVideo();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    printLog("-----------> build <-----------");
-
-    return StreamBuilder<String>(
-      stream: _quanlityController.stream,
-      builder: (context, snapshot) {
-        if (snapshot?.data != null &&
-            m3u8qualitySYS.toUpperCase() != snapshot.data) {
-          m3u8show = false;
-          m3u8qualitySYS = snapshot.data;
-          widget.onChangeQuanlity?.call(quanlityType[m3u8qualitySYS]);
-
-          getCurrentQuanlity(yoyo, quanlityType[m3u8qualitySYS])
-              .then((videoHLS) {
-            m3u8quality = quanlityName[videoHLS['type']];
-            currentQuanlity = quanlityType[m3u8quality];
-            onselectquality(videoHLS['info']);
-          });
-        }
-        if (_videoController?.value?.initialized ?? false) {
-          return renderVideo();
-        }
-        return widget.videoLoadingStyle.loading;
-      },
-    );
+    if (_videoController?.value?.initialized ?? false) {
+      return renderVideo();
+    }
+    return widget.videoLoadingStyle.loading;
   }
 
   Widget renderVideo() {
@@ -418,9 +401,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
               color: Theme.of(context).scaffoldBackgroundColor,
               child: Text(m3u8quality),
             ),
-            () {
-              m3u8show = true;
-            },
+            () => _m3u8showStream.add(true),
           ),
         Container(
           width: 5,
@@ -431,51 +412,51 @@ class _YoYoPlayerState extends State<YoYoPlayer>
 
   Widget m3u8list() {
     printLog("-----------> m3u8list <-----------");
-    return m3u8show == true
-        ? Align(
-            alignment: !widget.autoHideOptionM3U8
-                ? Alignment.topRight
-                : Alignment.bottomRight,
-            child: Padding(
-              padding: EdgeInsets.only(
-                  top: !widget.autoHideOptionM3U8 ? 120 : 0,
-                  bottom: !widget.autoHideOptionM3U8 ? 0 : 40,
-                  right: 5),
-              child: SingleChildScrollView(
-                child: Column(
-                  children: yoyo.map((e) {
-                    final mathQuanlity = e.dataquality.split('x');
-                    final quanlity = ((mathQuanlity?.length ?? 0) > 1)
-                        ? mathQuanlity[1]
-                        : e.dataquality;
-                    final nameQuanlity = quanlityName[isResolution(quanlity)];
-                    return InkWell(
-                      onTap: () {
-                        m3u8quality = nameQuanlity;
-                        m3u8show = false;
-                        m3u8qualitySYS = quanlity;
-                        widget.onChangeQuanlity?.call(isResolution(quanlity));
-                        onselectquality(e);
-                        _quanlityController.add(m3u8quality);
-                        printLog(
-                            "--- quality select ---\nquality : ${e.dataquality}\nlink : ${e.dataurl}");
-                      },
-                      child: Container(
-                          width: 90,
-                          color: m3u8quality == nameQuanlity
-                              ? Theme.of(context).primaryColor
-                              : Theme.of(context).scaffoldBackgroundColor,
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Text("$nameQuanlity"),
-                          )),
-                    );
-                  }).toList(),
-                ),
+    return StreamBuilder<bool>(
+      stream: _m3u8showStream.stream,
+      builder: (context, snapshot) {
+        if ((snapshot.data ?? false) == false) {
+          return const SizedBox();
+        }
+        return Align(
+          alignment: !widget.autoHideOptionM3U8
+              ? Alignment.topRight
+              : Alignment.bottomRight,
+          child: Padding(
+            padding: EdgeInsets.only(
+                top: !widget.autoHideOptionM3U8 ? 120 : 0,
+                bottom: !widget.autoHideOptionM3U8 ? 0 : 40,
+                right: 5),
+            child: SingleChildScrollView(
+              child: Column(
+                children: yoyo.map((e) {
+                  final mathQuanlity = e.dataquality.split('x');
+                  final quanlity = ((mathQuanlity?.length ?? 0) > 1)
+                      ? mathQuanlity[1]
+                      : e.dataquality;
+                  final nameQuanlity = quanlityName[isResolution(quanlity)];
+                  return InkWell(
+                    onTap: () {
+                      pauseVideo();
+                      widget.onChangeQuanlity?.call(isResolution(quanlity));
+                    },
+                    child: Container(
+                        width: 90,
+                        color: m3u8quality == nameQuanlity
+                            ? Theme.of(context).primaryColor
+                            : Theme.of(context).scaffoldBackgroundColor,
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text("$nameQuanlity"),
+                        )),
+                  );
+                }).toList(),
               ),
             ),
-          )
-        : Container();
+          ),
+        );
+      },
+    );
   }
 
   List<Widget> videoBuiltInChildrens() {
@@ -493,15 +474,24 @@ class _YoYoPlayerState extends State<YoYoPlayer>
 
   Widget btm() {
     printLog("-----------> btm <-----------");
-    return showMenu
-        ? bottomBar(
+    // return showMenu
+    //     ?
+    //     : Container();
+    return StreamBuilder(
+      stream: _videoSeekStream.stream,
+      builder: (context, snapshot) {
+        if (snapshot.data == null || !showMenu) {
+          return Container();
+        }
+        return bottomBar(
             controller: _videoController,
-            videoSeek: "$videoSeek",
+            videoSeek: "${snapshot.data}",
             videoDuration: "$videoDuration",
             showMenu: showMenu,
             quanlity: quanlityOption(),
-            play: () => togglePlay())
-        : Container();
+            play: () => togglePlay());
+      },
+    );
   }
 
   Widget actionVideo() {
@@ -530,12 +520,12 @@ class _YoYoPlayerState extends State<YoYoPlayer>
 
     printLog("parse url data end : ${a.pathSegments.last}");
     if (isNetwork) {
-      setState(() {
+      setStateMounted(() {
         offline = false;
       });
       if (a.pathSegments.last.endsWith("mkv")) {
         if (widget.onpeningvideo == null) {
-          setState(() {
+          setStateMounted(() {
             playtype = "MKV";
           });
           printLog("urlend : mkv");
@@ -544,7 +534,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
         videoControllSetup(url);
       } else if (a.pathSegments.last.endsWith("mp4")) {
         if (widget.onpeningvideo == null) {
-          setState(() {
+          setStateMounted(() {
             playtype = "MP4";
           });
           printLog("urlend : mp4 $playtype");
@@ -554,7 +544,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
         videoControllSetup(url);
       } else if (a.pathSegments.last.endsWith("m3u8")) {
         if (widget.onpeningvideo == null) {
-          setState(() {
+          setStateMounted(() {
             playtype = "HLS";
           });
           // widget.onpeningvideo("M3U8");
@@ -573,7 +563,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
       }
       printLog("--- Current Video Status ---\noffline : $offline");
     } else {
-      setState(() {
+      setStateMounted(() {
         offline = true;
         printLog(
             "--- Current Video Status ---\noffline : $offline \n --- :3 done url check ---");
@@ -605,7 +595,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
       caseSensitive: false,
       multiLine: true,
     );
-    setState(
+    setStateMounted(
       () {
         if (m3u8Content != null) {
           printLog("--- HLS Old Data ----\n$m3u8Content");
@@ -684,9 +674,12 @@ class _YoYoPlayerState extends State<YoYoPlayer>
 
     try {
       final file = File('${directory.path}/yoyo$quality.m3u8');
+
       await file.writeAsString(
-          """#EXTM3U\n#EXT-X-INDEPENDENT-SEGMENTS\n$audio#EXT-X-STREAM-INF:CLOSED-CAPTIONS=NONE,BANDWIDTH=1469712,RESOLUTION=$quality,FRAME-RATE=30.000\n$url""");
-      printLog("------>> write done ${directory.path}/yoyo$quality.m3u8");
+          """#EXTM3U\n#EXT-X-VERSION:3\n#EXT-X-STREAM-INF:BANDWIDTH=1032000,CODECS="avc1.4D401E,mp4a.40.2",RESOLUTION=$quality\n$url""");
+      // await file.writeAsString(
+      //     """#EXTM3U\n#EXT-X-INDEPENDENT-SEGMENTS\n$audio#EXT-X-STREAM-INF:CLOSED-CAPTIONS=NONE,BANDWIDTH=1469712,RESOLUTION=$quality,FRAME-RATE=30.000\n$url""");
+      // printLog("------>> write done ${directory.path}/yoyo$quality.m3u8");
     } catch (e) {
       printLog(
           "------>> Couldn't write file ${directory.path}/yoyo$quality.m3u8");
@@ -697,16 +690,33 @@ class _YoYoPlayerState extends State<YoYoPlayer>
 // Video controller
   void videoControllSetup(String url) {
     printLog("-----------> videoControllSetup <----------- :: $url");
+    bool isNew = true;
     if (_videoController?.value?.initialized ?? false) {
-      _videoController?.removeListener?.call(listener);
-      _videoController = null;
+      // _videoController?.removeListener?.call(listener);
+      // _videoController = null;
+      isNew = false;
     }
     videoInit(url);
-    _videoController.addListener(listener);
+    if (isNew) {
+      _videoController.addListener(listener);
+    }
   }
+
+// video Listener
+  Timer timeListenner;
+  Timer timeHasErrorListenner;
+  final _videoSeekStream = StreamController<String>.broadcast();
 
   void listener() async {
     printLog("-----------> listener <-----------");
+    if (_videoController?.value?.hasError ?? false) {
+      timeHasErrorListenner ??=
+          Timer(const Duration(milliseconds: 3000), () async {
+        pauseVideo();
+        widget.refeshPlayer?.call('${widget.hashCode}');
+        timeHasErrorListenner = null;
+      });
+    }
     if (isStopListener && !(_videoController.value.isPlaying ?? true)) return;
 
     if ((_videoController?.value?.initialized ?? false) &&
@@ -717,17 +727,12 @@ class _YoYoPlayerState extends State<YoYoPlayer>
       videoDuration =
           convertDurationToString(_videoController?.value?.duration);
       videoSeek = convertDurationToString(_videoController?.value?.position);
-      videoSeekSecond =
-          _videoController?.value?.position?.inSeconds?.toDouble();
-      videoDurationSecond =
-          _videoController?.value?.duration?.inSeconds?.toDouble();
-      if (!mounted) return;
-      setState(() {});
-    } else {
-      if (await Wakelock.enabled) {
-        if (!mounted) return;
-        setState(() {});
-      }
+      timeListenner ??= Timer(const Duration(milliseconds: 600), () async {
+        if ((_videoSeekStream?.isClosed ?? true) == false) {
+          _videoSeekStream?.sink?.add?.call(videoSeek);
+        }
+        timeListenner = null;
+      });
     }
   }
 
@@ -738,9 +743,9 @@ class _YoYoPlayerState extends State<YoYoPlayer>
       if (_videoController != null &&
           (_videoController?.value?.isPlaying ?? false) &&
           showMenu) {
-        setState(() {
+        _m3u8showStream.add(false);
+        setStateMounted(() {
           showMenu = false;
-          m3u8show = false;
           controlBarAnimationController.reverse();
         });
       }
@@ -760,11 +765,11 @@ class _YoYoPlayerState extends State<YoYoPlayer>
       showMenu = true;
       createHideControlbarTimer();
     } else {
-      m3u8show = false;
+      _m3u8showStream.add(false);
       showMenu = false;
     }
 
-    setState(() {
+    setStateMounted(() {
       if (showMenu) {
         controlBarAnimationController.forward();
       } else {
@@ -782,7 +787,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
       } else {
         playVideo();
       }
-      setState(() {});
+      setStateMounted(() {});
     });
   }
 
@@ -805,14 +810,12 @@ class _YoYoPlayerState extends State<YoYoPlayer>
             VideoPlayerController.network(url, formatHint: VideoFormat.hls)
               ..setLooping(widget.isLooping)
               ..initialize().then((_) {
-                setState(() => hasInitError = false);
                 pauseVideo();
                 widget.onInitCompleted?.call(_videoController);
+                setStateMounted(() => hasInitError = false);
               }).catchError((e) {
                 hasInitError = true;
-                if (mounted) {
-                  setState(() {});
-                }
+                setStateMounted(() {});
               });
       } else {
         _videoController =
@@ -831,8 +834,8 @@ class _YoYoPlayerState extends State<YoYoPlayer>
         ..initialize().then((value) {
           pauseVideo();
           widget.onInitCompleted?.call(_videoController);
-          setState(() => hasInitError = false);
-        }).catchError((e) => setState(() => hasInitError = true));
+          setStateMounted(() => hasInitError = false);
+        }).catchError((e) => setStateMounted(() => hasInitError = true));
     }
   }
 
@@ -868,19 +871,19 @@ class _YoYoPlayerState extends State<YoYoPlayer>
     } else {
       //puzuka
       try {
-        if (Platform.isAndroid) {
-          String text;
-          final Directory directory = await getApplicationDocumentsDirectory();
-          final File file =
-              File('${directory.path}/yoyo${data.dataquality}.m3u8');
-          printLog("read file success");
-          text = await file.readAsString();
-          printLog("data : $text  :: data");
-          runFile(file);
-        } else {
-          videoControllSetup(data.dataurl);
-        }
-        // localm3u8play(data.dataurl);
+        // if (Platform.isAndroid) {
+        //   String text;
+        //   final Directory directory = await getApplicationDocumentsDirectory();
+        //   final File file =
+        //       File('${directory.path}/yoyo${data.dataquality}.m3u8');
+        //   printLog("read file success");
+        //   text = await file.readAsString();
+        //   print("data : $text  :: data");
+        //   runFile(file);
+        // } else {
+        //   videoControllSetup(data.dataurl);
+        // }
+        videoControllSetup(data.dataurl);
       } catch (e) {
         printLog("Couldn't read file ${data.dataquality} e: $e");
       }
@@ -897,9 +900,11 @@ class _YoYoPlayerState extends State<YoYoPlayer>
       ..initialize().then((_) {
         pauseVideo();
         widget.onInitCompleted?.call(_videoController);
-        setState(() => hasInitError = false);
-      }).catchError((e) => setState(() => hasInitError = true));
-    _videoController.addListener(listener);
+        setStateMounted(() => hasInitError = false);
+      }).catchError(
+        (e) => setStateMounted(() => hasInitError = true),
+      );
+    // _videoController.addListener(listener);
   }
 
   void pauseVideo() {
@@ -969,14 +974,11 @@ class _YoYoPlayerState extends State<YoYoPlayer>
                 final nameQuanlity = quanlityName[isResolution(quanlity)];
                 return InkWell(
                   onTap: () {
-                    m3u8quality = nameQuanlity;
-                    m3u8show = false;
-                    m3u8qualitySYS = quanlity;
-                    widget.onChangeQuanlity?.call(isResolution(quanlity));
-                    onselectquality(e);
-                    _quanlityController.add(m3u8quality);
-                    printLog(
-                        "--- quality select ---\nquality : ${e.dataquality}\nlink : ${e.dataurl}");
+                    pauseVideo();
+
+                    widget.onChangeQuanlity?.call(
+                      isResolution(quanlity),
+                    );
                     Navigator.of(context).pop(true);
                   },
                   child: Container(
@@ -1013,5 +1015,16 @@ class _YoYoPlayerState extends State<YoYoPlayer>
         );
       },
     );
+  }
+
+  void setStateMounted(Function fnc) {
+    if (!mounted) {
+      fnc?.call();
+      return;
+    }
+
+    setState(() {
+      fnc?.call();
+    });
   }
 }
