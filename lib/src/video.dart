@@ -325,9 +325,6 @@ class _YoYoPlayerState extends State<YoYoPlayer>
         Widget _player = const SizedBox();
 
         if (_videoController?.value?.initialized ?? false) {
-          if (_videoController.value.buffered?.isEmpty ?? true) {
-            pauseVideo();
-          }
           _player = VideoPlayer(_videoController);
         }
 
@@ -810,12 +807,11 @@ class _YoYoPlayerState extends State<YoYoPlayer>
             VideoPlayerController.network(url, formatHint: VideoFormat.hls)
               ..setLooping(widget.isLooping)
               ..initialize().then((_) {
-                pauseVideo();
                 widget.onInitCompleted?.call(_videoController);
                 setStateMounted(() => hasInitError = false);
               }).catchError((e) {
                 hasInitError = true;
-                setStateMounted(() {});
+                widget.refeshPlayer?.call('${widget.hashCode}');
               });
       } else {
         _videoController =
@@ -909,12 +905,14 @@ class _YoYoPlayerState extends State<YoYoPlayer>
 
   void pauseVideo() {
     if (_videoController?.value?.initialized ?? false) {
+      print("-------> Pause Video");
       _videoController.pause();
     }
   }
 
   void playVideo() {
     if (_videoController?.value?.initialized ?? false) {
+      print("-------> Play Video");
       _videoController.play();
     }
   }
