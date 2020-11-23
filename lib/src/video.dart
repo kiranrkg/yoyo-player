@@ -124,7 +124,7 @@ class YoYoPlayer extends StatefulWidget {
 class _YoYoPlayerState extends State<YoYoPlayer>
     with SingleTickerProviderStateMixin {
   VideoPlayerController _videoController;
-  // event player
+  // event playerf
 
   //vieo play type (hls,mp4,mkv,offline)
   String playtype;
@@ -476,10 +476,8 @@ class _YoYoPlayerState extends State<YoYoPlayer>
 
   Widget btm() {
     printLog("-----------> btm <-----------");
-    // return showMenu
-    //     ?
-    //     : Container();
-    return StreamBuilder(
+
+    return StreamBuilder<String>(
       stream: _videoSeekStream.stream,
       builder: (context, snapshot) {
         if (snapshot.data == null || !showMenu) {
@@ -499,18 +497,22 @@ class _YoYoPlayerState extends State<YoYoPlayer>
   Widget actionVideo() {
     printLog("-----------> btm <-----------");
     return showMenu
-        ? GestureDetector(
-            onTap: togglePlay,
-            child: Center(
-              child: Icon(
-                _videoController.value.isPlaying
-                    ? Icons.pause
-                    : Icons.play_arrow,
-                size: 60,
-                color: Colors.white,
-              ),
-            ),
-          )
+        ? StreamBuilder<String>(
+            stream: _videoSeekStream.stream,
+            builder: (context, snapshot) {
+              return GestureDetector(
+                onTap: togglePlay,
+                child: Center(
+                  child: Icon(
+                    _videoController.value.isPlaying
+                        ? Icons.pause
+                        : Icons.play_arrow,
+                    size: 60,
+                    color: Colors.white,
+                  ),
+                ),
+              );
+            })
         : Container();
   }
 
@@ -708,7 +710,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
   String saveTime = '';
   final _videoSeekStream = StreamController<String>.broadcast();
   bool checkFreezingApp() {
-    return countFree >= 2 ? true : false;
+    return countFree >= 3 ? true : false;
   }
 
   void listener() async {
@@ -716,8 +718,8 @@ class _YoYoPlayerState extends State<YoYoPlayer>
     if ((_videoController?.value?.hasError ?? false) || checkFreezingApp()) {
       timeHasErrorListenner ??=
           Timer(const Duration(milliseconds: 2000), () async {
-        countFree = 0;
         widget.refeshPlayer?.call(getKeyRefesh, checkFreezingApp());
+        countFree = 0;
         timeHasErrorListenner = null;
       });
     }
@@ -731,11 +733,12 @@ class _YoYoPlayerState extends State<YoYoPlayer>
       videoDuration =
           convertDurationToString(_videoController?.value?.duration);
       videoSeek = convertDurationToString(_videoController?.value?.position);
-
+      // print("===> TIME : $videoSeek");
       timeListenner ??= Timer(const Duration(milliseconds: 600), () async {
         if (saveTime == videoSeek) {
           countFree++;
         }
+        // print("===> countFree : $countFree");
         saveTime = videoSeek;
         if ((_videoSeekStream?.isClosed ?? true) == false) {
           _videoSeekStream?.sink?.add?.call(videoSeek);
@@ -924,7 +927,13 @@ class _YoYoPlayerState extends State<YoYoPlayer>
     if (_videoController?.value?.initialized ?? false) {
       // ignore: avoid_print
       print("-------> Pause Video");
-      _videoController.pause();
+      if (_videoController.value.buffered?.isEmpty ?? true) {
+        // ignore: avoid_print
+        print("-------> Pause Video => refeshPlayer");
+        widget.refeshPlayer?.call(getKeyRefesh, true);
+      } else {
+        _videoController.pause();
+      }
     }
   }
 
