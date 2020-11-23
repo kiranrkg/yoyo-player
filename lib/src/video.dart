@@ -71,14 +71,17 @@ class YoYoPlayer extends StatefulWidget {
 
   final bool isLooping;
 
+  final bool autoPlay;
+
   final bool showOptionM3U8;
 
   final bool autoHideOptionM3U8;
+
   final QuanlityVideo quanlity;
 
   final Function(QuanlityVideo) onChangeQuanlity;
 
-  final Function(String) refeshPlayer;
+  final Function(String, bool) refeshPlayer;
 
   ///
   /// ```dart
@@ -111,6 +114,7 @@ class YoYoPlayer extends StatefulWidget {
     this.quanlity = QuanlityVideo.AUTO,
     this.onChangeQuanlity,
     this.refeshPlayer,
+    this.autoPlay = false,
   }) : super(key: key);
 
   @override
@@ -156,7 +160,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
   // video full screen
   bool fullscreen = false;
   // menu show
-  bool showMenu = false;
+  bool showMenu = true;
   // menu action
   bool showAction = false;
   // auto show subtitle
@@ -192,6 +196,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
     currentQuanlity = widget.quanlity;
     m3u8qualitySYS = quanlityName[widget.quanlity];
     urlcheck(widget.url);
+    showMenu = !(widget.autoPlay ?? true);
 
     /// Control bar animation
     controlBarAnimationController = AnimationController(
@@ -674,9 +679,6 @@ class _YoYoPlayerState extends State<YoYoPlayer>
 
       await file.writeAsString(
           """#EXTM3U\n#EXT-X-VERSION:3\n#EXT-X-STREAM-INF:BANDWIDTH=1032000,CODECS="avc1.4D401E,mp4a.40.2",RESOLUTION=$quality\n$url""");
-      // await file.writeAsString(
-      //     """#EXTM3U\n#EXT-X-INDEPENDENT-SEGMENTS\n$audio#EXT-X-STREAM-INF:CLOSED-CAPTIONS=NONE,BANDWIDTH=1469712,RESOLUTION=$quality,FRAME-RATE=30.000\n$url""");
-      // printLog("------>> write done ${directory.path}/yoyo$quality.m3u8");
     } catch (e) {
       printLog(
           "------>> Couldn't write file ${directory.path}/yoyo$quality.m3u8");
@@ -689,8 +691,6 @@ class _YoYoPlayerState extends State<YoYoPlayer>
     printLog("-----------> videoControllSetup <----------- :: $url");
     bool isNew = true;
     if (_videoController?.value?.initialized ?? false) {
-      // _videoController?.removeListener?.call(listener);
-      // _videoController = null;
       isNew = false;
     }
     videoInit(url);
@@ -717,7 +717,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
       timeHasErrorListenner ??=
           Timer(const Duration(milliseconds: 2000), () async {
         countFree = 0;
-        widget.refeshPlayer?.call(getKeyRefesh);
+        widget.refeshPlayer?.call(getKeyRefesh, checkFreezingApp());
         timeHasErrorListenner = null;
       });
     }
@@ -823,7 +823,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
                 setStateMounted(() => hasInitError = false);
               }).catchError((e) {
                 hasInitError = true;
-                widget.refeshPlayer?.call(getKeyRefesh);
+                widget.refeshPlayer?.call(getKeyRefesh, checkFreezingApp());
               });
       } else {
         _videoController =
@@ -833,7 +833,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
                 widget.onInitCompleted?.call(_videoController);
                 setStateMounted(() => hasInitError = false);
               }).catchError((e) {
-                widget.refeshPlayer?.call(getKeyRefesh);
+                widget.refeshPlayer?.call(getKeyRefesh, checkFreezingApp());
                 setStateMounted(() => hasInitError = true);
               });
       }
@@ -846,7 +846,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
           widget.onInitCompleted?.call(_videoController);
           setStateMounted(() => hasInitError = false);
         }).catchError((e) {
-          widget.refeshPlayer?.call(getKeyRefesh);
+          widget.refeshPlayer?.call(getKeyRefesh, checkFreezingApp());
           setStateMounted(() => hasInitError = true);
         });
     }
