@@ -77,11 +77,13 @@ class YoYoPlayer extends StatefulWidget {
 
   final bool autoHideOptionM3U8;
 
-  final QuanlityVideo quanlity;
+  final QualityVideo quality;
 
-  final Function(QuanlityVideo) onChangeQuanlity;
+  final Function(QualityVideo) onChangeQuality;
 
   final Function(String, bool) refeshPlayer;
+
+  final int limitFreezingWillRefesh;
 
   ///
   /// ```dart
@@ -111,10 +113,11 @@ class YoYoPlayer extends StatefulWidget {
     this.isLooping = true,
     this.showOptionM3U8 = false,
     this.autoHideOptionM3U8 = true,
-    this.quanlity = QuanlityVideo.AUTO,
-    this.onChangeQuanlity,
+    this.quality = QualityVideo.AUTO,
+    this.onChangeQuality,
     this.refeshPlayer,
     this.autoPlay = false,
+    this.limitFreezingWillRefesh = 4,
   }) : super(key: key);
 
   @override
@@ -175,7 +178,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
   //Current ScreenSize
   Size get screenSize => MediaQuery.of(context).size;
 
-  QuanlityVideo currentQuanlity = QuanlityVideo.AUTO;
+  QualityVideo currentQuality = QualityVideo.AUTO;
 
   void printLog(log) {
     if (widget.showLog) {
@@ -193,8 +196,8 @@ class _YoYoPlayerState extends State<YoYoPlayer>
     super.initState();
     printLog("-----------> initState <-----------");
     // getsub();
-    currentQuanlity = widget.quanlity;
-    m3u8qualitySYS = quanlityName[widget.quanlity];
+    currentQuality = widget.quality;
+    m3u8qualitySYS = qualityName[widget.quality];
     urlcheck(widget.url);
     showMenu = !(widget.autoPlay ?? true);
 
@@ -247,7 +250,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
   final Map<String, Function> listEventListener = {};
   void exportEventPlayer() {
     printLog("-----------> exportEventPlayer <-----------");
-    widget.event.showOptionQuanlity = (ct) => showOptionQuanlity(ct);
+    widget.event.showOptionQuality = (ct) => showOptionQuality(ct);
 
     if (widget.event?.addListener != null) {
       widget.event
@@ -271,13 +274,13 @@ class _YoYoPlayerState extends State<YoYoPlayer>
         (_videoController?.value?.initialized ?? false);
     widget.event.position = () => _videoController?.value?.duration;
     widget.event.aspectRatio = () => _videoController?.value?.aspectRatio;
-    widget.event.updateQuanlity = updateQuanlity;
+    widget.event.updateQuality = updateQuality;
   }
 
-  Future<bool> updateQuanlity(String quanlity) async {
-    if (quanlity?.toUpperCase() != m3u8qualitySYS?.toUpperCase()) {
+  Future<bool> updateQuality(String quality) async {
+    if (quality?.toUpperCase() != m3u8qualitySYS?.toUpperCase()) {
       pauseVideo();
-      widget.onChangeQuanlity?.call(quanlityType[quanlity]);
+      widget.onChangeQuality?.call(qualityType[quality]);
       return true;
     }
     return false;
@@ -383,12 +386,12 @@ class _YoYoPlayerState extends State<YoYoPlayer>
         height: !widget.autoHideOptionM3U8 ? 200 : 40,
         width: double.infinity,
         // color: Colors.yellow,
-        child: quanlityOption(),
+        child: qualityOption(),
       ),
     );
   }
 
-  Widget quanlityOption() {
+  Widget qualityOption() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
@@ -432,24 +435,24 @@ class _YoYoPlayerState extends State<YoYoPlayer>
             child: SingleChildScrollView(
               child: Column(
                 children: yoyo.map((e) {
-                  final mathQuanlity = e.dataquality.split('x');
-                  final quanlity = ((mathQuanlity?.length ?? 0) > 1)
-                      ? mathQuanlity[1]
+                  final mathQuality = e.dataquality.split('x');
+                  final quality = ((mathQuality?.length ?? 0) > 1)
+                      ? mathQuality[1]
                       : e.dataquality;
-                  final nameQuanlity = quanlityName[isResolution(quanlity)];
+                  final nameQuality = qualityName[isResolution(quality)];
                   return InkWell(
                     onTap: () {
                       pauseVideo();
-                      widget.onChangeQuanlity?.call(isResolution(quanlity));
+                      widget.onChangeQuality?.call(isResolution(quality));
                     },
                     child: Container(
                         width: 90,
-                        color: m3u8quality == nameQuanlity
+                        color: m3u8quality == nameQuality
                             ? Theme.of(context).primaryColor
                             : Theme.of(context).scaffoldBackgroundColor,
                         child: Padding(
                           padding: const EdgeInsets.all(8.0),
-                          child: Text("$nameQuanlity"),
+                          child: Text("$nameQuality"),
                         )),
                   );
                 }).toList(),
@@ -488,7 +491,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
             videoSeek: "${snapshot.data}",
             videoDuration: "$videoDuration",
             showMenu: showMenu,
-            quanlity: quanlityOption(),
+            quality: qualityOption(),
             play: () => togglePlay());
       },
     );
@@ -555,8 +558,8 @@ class _YoYoPlayerState extends State<YoYoPlayer>
         }
         printLog("urlend : m3u8 => $url");
         getm3u8(url).then((value) {
-          getCurrentQuanlity(yoyo, currentQuanlity).then((videoHLS) {
-            m3u8quality = quanlityName[videoHLS['type']];
+          getCurrentQuality(yoyo, currentQuality).then((videoHLS) {
+            m3u8quality = qualityName[videoHLS['type']];
             videoControllSetup(videoHLS['info'].dataurl);
           });
         });
@@ -710,14 +713,14 @@ class _YoYoPlayerState extends State<YoYoPlayer>
   String saveTime = '';
   final _videoSeekStream = StreamController<String>.broadcast();
   bool checkFreezingApp() {
-    return countFree >= 3 ? true : false;
+    return countFree >= widget.limitFreezingWillRefesh ? true : false;
   }
 
   void listener() async {
     printLog("-----------> listener <-----------");
     if ((_videoController?.value?.hasError ?? false) || checkFreezingApp()) {
       timeHasErrorListenner ??=
-          Timer(const Duration(milliseconds: 2000), () async {
+          Timer(const Duration(milliseconds: 3000), () async {
         widget.refeshPlayer?.call(getKeyRefesh, checkFreezingApp());
         countFree = 0;
         timeHasErrorListenner = null;
@@ -733,12 +736,16 @@ class _YoYoPlayerState extends State<YoYoPlayer>
       videoDuration =
           convertDurationToString(_videoController?.value?.duration);
       videoSeek = convertDurationToString(_videoController?.value?.position);
-      // print("===> TIME : $videoSeek");
+
+      // print("====> $videoSeek $saveTime $countFree");
       timeListenner ??= Timer(const Duration(milliseconds: 600), () async {
+        // print("====----- update>");
         if (saveTime == videoSeek) {
           countFree++;
+          // print("====> PUSH $countFree");
+        } else {
+          countFree = 0;
         }
-        // print("===> countFree : $countFree");
         saveTime = videoSeek;
         if ((_videoSeekStream?.isClosed ?? true) == false) {
           _videoSeekStream?.sink?.add?.call(videoSeek);
@@ -885,20 +892,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
     if (data.dataquality == "Auto") {
       videoControllSetup(data.dataurl);
     } else {
-      //puzuka
       try {
-        // if (Platform.isAndroid) {
-        //   String text;
-        //   final Directory directory = await getApplicationDocumentsDirectory();
-        //   final File file =
-        //       File('${directory.path}/yoyo${data.dataquality}.m3u8');
-        //   printLog("read file success");
-        //   text = await file.readAsString();
-        //   print("data : $text  :: data");
-        //   runFile(file);
-        // } else {
-        //   videoControllSetup(data.dataurl);
-        // }
         videoControllSetup(data.dataurl);
       } catch (e) {
         printLog("Couldn't read file ${data.dataquality} e: $e");
@@ -983,7 +977,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
     }
   }
 
-  Future showOptionQuanlity(BuildContext ct) {
+  Future showOptionQuality(BuildContext ct) {
     return showDialog(
       context: ct,
       builder: (ct) {
@@ -993,17 +987,17 @@ class _YoYoPlayerState extends State<YoYoPlayer>
           content: SingleChildScrollView(
             child: ListBody(
               children: yoyo.map((e) {
-                final mathQuanlity = e.dataquality.split('x');
-                final quanlity = ((mathQuanlity?.length ?? 0) > 1)
-                    ? mathQuanlity[1]
+                final mathQuality = e.dataquality.split('x');
+                final quality = ((mathQuality?.length ?? 0) > 1)
+                    ? mathQuality[1]
                     : e.dataquality;
-                final nameQuanlity = quanlityName[isResolution(quanlity)];
+                final nameQuality = qualityName[isResolution(quality)];
                 return InkWell(
                   onTap: () {
                     pauseVideo();
 
-                    widget.onChangeQuanlity?.call(
-                      isResolution(quanlity),
+                    widget.onChangeQuality?.call(
+                      isResolution(quality),
                     );
                     Navigator.of(context).pop(true);
                   },
@@ -1023,13 +1017,18 @@ class _YoYoPlayerState extends State<YoYoPlayer>
                         children: [
                           Padding(
                             padding: const EdgeInsets.all(8.0),
-                            child: Text("$nameQuanlity"),
+                            child: Text("$nameQuality"),
                           ),
                           Radio(
-                            value: nameQuanlity,
+                            value: nameQuality,
                             groupValue: m3u8quality,
                             onChanged: (value) {
                               m3u8quality = value;
+                              pauseVideo();
+                              widget.onChangeQuality?.call(
+                                isResolution(quality),
+                              );
+                              Navigator.of(context).pop(true);
                             },
                           ),
                         ],
