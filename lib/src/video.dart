@@ -252,13 +252,11 @@ class _YoYoPlayerState extends State<YoYoPlayer>
     printLog("-----------> exportEventPlayer <-----------");
     widget.event.showOptionQuality = (ct) => showOptionQuality(ct);
 
-    if (widget.event?.addListener != null) {
-      widget.event
-        ..addListener = (String key, Function event) {
-          listEventListener[key] = event;
-          _videoController?.addListener(listEventListener[key]);
-        };
-    }
+    widget.event
+      ..addListener = (String key, Function event) {
+        listEventListener[key] = event;
+        _videoController?.addListener(listEventListener[key]);
+      };
     widget.event.play = () {
       createHideControlbarTimer();
       playVideo();
