@@ -919,11 +919,9 @@ class _YoYoPlayerState extends State<YoYoPlayer>
 
   void pauseVideo() {
     if (_videoController?.value?.initialized ?? false) {
-      // ignore: avoid_print
-      print("-------> Pause Video");
+      printLog("-------> Pause Video");
       if (_videoController.value.buffered?.isEmpty ?? true) {
-        // ignore: avoid_print
-        print("-------> Pause Video => refeshPlayer");
+        printLog("-------> Pause Video => refeshPlayer");
         widget.refeshPlayer?.call(getKeyRefesh, true);
       } else {
         _videoController.pause();
@@ -934,7 +932,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
   void playVideo() {
     if (_videoController?.value?.initialized ?? false) {
       // ignore: avoid_print
-      print("-------> Play Video");
+      printLog("-------> Play Video");
       _videoController.play();
     }
   }
@@ -999,7 +997,10 @@ class _YoYoPlayerState extends State<YoYoPlayer>
                     widget.onChangeQuality?.call(
                       isResolution(quality),
                     );
-                    Navigator.of(context).pop(true);
+
+                    if (Navigator.of(context).canPop()) {
+                      Navigator.of(context).pop(true);
+                    }
                   },
                   child: Container(
                       decoration: yoyo.last != e
@@ -1028,7 +1029,9 @@ class _YoYoPlayerState extends State<YoYoPlayer>
                               widget.onChangeQuality?.call(
                                 isResolution(quality),
                               );
-                              Navigator.of(context).pop(true);
+                              if (Navigator.of(context).canPop()) {
+                                Navigator.of(context).pop(true);
+                              }
                             },
                           ),
                         ],

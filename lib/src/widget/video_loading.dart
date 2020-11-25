@@ -10,9 +10,9 @@ class VideoLoading extends StatelessWidget {
       child: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          children: [
+          children: const [
             CircularProgressIndicator(
-              valueColor: new AlwaysStoppedAnimation<Color>(Colors.amber),
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.amber),
             ),
             SizedBox(height: 10),
             Text('Loading...')

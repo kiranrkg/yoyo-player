@@ -20,7 +20,7 @@ class _MyAppState extends State<MyApp> {
         appBar: fullscreen == false
             ? AppBar(
                 backgroundColor: Colors.blue,
-                title: Image(
+                title: const Image(
                   image: AssetImage('image/yoyo_logo.png'),
                   fit: BoxFit.fitHeight,
                   height: 50,
@@ -31,7 +31,7 @@ class _MyAppState extends State<MyApp> {
         body: Column(
           children: [
             YoYoPlayer(
-              aspectRatio: 16 / 9,
+              // aspectRatio: 16 / 9,
               url:
                   // "https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4",
                   "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
@@ -43,7 +43,7 @@ class _MyAppState extends State<MyApp> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
+                    children: const [
                       Image(
                         image: AssetImage('image/yoyo_logo.png'),
                         fit: BoxFit.fitHeight,

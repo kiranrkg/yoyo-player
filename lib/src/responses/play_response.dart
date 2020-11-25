@@ -15,7 +15,7 @@ void rewind(VideoPlayerController controller) {
     controller
         .seekTo(Duration(seconds: controller.value.position.inSeconds - 10));
   } else {
-    controller.seekTo(Duration(seconds: 0));
+    controller.seekTo(const Duration(seconds: 0));
   }
   if (!controller.value.isPlaying) {}
 }
