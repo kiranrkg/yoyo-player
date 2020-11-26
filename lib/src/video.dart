@@ -85,6 +85,12 @@ class YoYoPlayer extends StatefulWidget {
 
   final int limitFreezingWillRefesh;
 
+  final double maxHeight;
+
+  final double minHeight;
+
+  final double aspectRatio;
+
   ///
   /// ```dart
   /// YoYoPlayer(
@@ -118,6 +124,9 @@ class YoYoPlayer extends StatefulWidget {
     this.refeshPlayer,
     this.autoPlay = false,
     this.limitFreezingWillRefesh = 4,
+    this.maxHeight,
+    this.minHeight,
+    this.aspectRatio,
   }) : super(key: key);
 
   @override
@@ -172,6 +181,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
   bool offline;
   // video auto quality
   String m3u8quality = "Auto";
+
   String m3u8qualitySYS = "Auto";
   // time for duration
   Timer showTime;
@@ -317,59 +327,115 @@ class _YoYoPlayerState extends State<YoYoPlayer>
     super.dispose();
   }
 
+  double get getAspectRatio =>
+      widget.aspectRatio ?? (_videoController?.value?.aspectRatio ?? 1);
   @override
   Widget build(BuildContext context) {
     if (_videoController?.value?.initialized ?? false) {
       return renderVideo();
     }
+    if (widget.minHeight != null && getAspectRatio >= 1) {
+      return Center(child: widget.videoLoadingStyle.loading);
+    }
     return widget.videoLoadingStyle.loading;
   }
 
+  double _mathScale(Size size, double aspectRatio) {
+    var maxH = 0.0;
+    var maxW = 0.0;
+    var minH = 0.0;
+    var minW = 0.0;
+
+    minH = widget.maxHeight ??
+        (widget.minHeight ?? MediaQuery.of(context).size.height);
+    minW = minH * (aspectRatio ?? 1);
+    maxW = size.width;
+    maxH = maxW / (aspectRatio ?? 1);
+
+    if (minW > maxW) {
+      final tempW = minW;
+      minW = maxW;
+      maxW = tempW;
+
+      final tempH = minH;
+      minH = maxH;
+      maxH = tempH;
+    }
+    return (maxH) / (minH);
+  }
+
   Widget renderVideo() {
-    final videoChildrens = <Widget>[
-      LayoutBuilder(builder: (context, constrain) {
-        Widget _player = const SizedBox();
+    final player = Align(
+      alignment: Alignment.center,
+      child: GestureDetector(
+        onTap: () {
+          toggleControls();
+        },
+        onDoubleTap: () {
+          togglePlay();
+        },
+        child: VideoPlayer(_videoController),
+      ),
+    );
+    Widget body;
+    // if (fullscreen) {
+    //   body = AspectRatio(
+    //     aspectRatio: fullscreen
+    //         ? calculateAspectRatio(context, screenSize)
+    //         : _videoController?.value?.aspectRatio ?? 16 / 9,
+    //     child: (_videoController?.value?.initialized ?? false)
+    //         ? player
+    //         : widget.videoLoadingStyle.loading,
+    //   );
+    // }
+    // body = AspectRatio(
+    //   aspectRatio: _videoController?.value?.aspectRatio ?? 1,
+    //   child: player,
+    // );
 
-        if (_videoController?.value?.initialized ?? false) {
-          _player = VideoPlayer(_videoController);
-        }
+    if (getAspectRatio < 1) {
+      final _scaleVideo =
+          _mathScale(MediaQuery.of(context).size, getAspectRatio);
 
-        return Align(
-          alignment: Alignment.center,
-          child: GestureDetector(
-            onTap: () {
-              toggleControls();
-            },
-            onDoubleTap: () {
-              togglePlay();
-            },
-            child: _player,
+      body = Stack(
+        children: [
+          Transform.scale(
+            scale: _scaleVideo,
+            child: Center(
+              child: AspectRatio(
+                aspectRatio: getAspectRatio,
+                child: player,
+              ),
+            ),
+          ),
+          if (widget.isShowControl) ...videoBuiltInChildrens()
+        ],
+      );
+    } else {
+      if (widget.minHeight != null) {
+        body = Stack(
+          children: [
+            Center(
+              child: AspectRatio(
+                aspectRatio: getAspectRatio,
+                child: player,
+              ),
+            ),
+            if (widget.isShowControl) ...videoBuiltInChildrens(),
+          ],
+        );
+      } else {
+        body = AspectRatio(
+          aspectRatio: getAspectRatio,
+          child: Stack(
+            children: [
+              player,
+              if (widget.isShowControl) ...videoBuiltInChildrens(),
+            ],
           ),
         );
-      }),
-      if (widget.isShowControl) ...videoBuiltInChildrens()
-    ];
-    Widget body;
-    if (fullscreen) {
-      body = AspectRatio(
-          aspectRatio: fullscreen
-              ? calculateAspectRatio(context, screenSize)
-              : _videoController?.value?.aspectRatio ?? 16 / 9,
-          child: (_videoController?.value?.initialized ?? false)
-              ? Stack(
-                  children: videoChildrens,
-                )
-              : widget.videoLoadingStyle.loading);
+      }
     }
-    body = AspectRatio(
-      aspectRatio: _videoController?.value?.aspectRatio ?? 1,
-      child: (_videoController?.value?.initialized ?? false)
-          ? Stack(
-              fit: StackFit.expand,
-              children: videoChildrens,
-            )
-          : widget.videoLoadingStyle.loading,
-    );
 
     return body;
   }
