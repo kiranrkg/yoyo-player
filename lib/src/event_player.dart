@@ -5,9 +5,13 @@ class EventPlayer {
   Future<bool> Function(String) updateQuality;
   Function(BuildContext) showOptionQuality;
   bool Function() isPlaying;
-  Function() pause;
+  Future<void> Function() pause;
   Function() play;
   double Function() aspectRatio;
+  StatePlayer Function() statePlayer;
   Duration Function() position;
   bool Function() isNotNull;
 }
+
+enum StatePlayer { init, unknown, running, error, stop }
+enum StateErrorPlayer { init, running, stop, none }

@@ -20,6 +20,8 @@ import 'widget/top_chip.dart';
 
 typedef VideoCallback<T> = void Function(T t);
 
+int queueVideoInit = 0;
+
 class YoYoPlayer extends StatefulWidget {
   ///Video[source],
   ///```dart
@@ -189,7 +191,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
   Size get screenSize => MediaQuery.of(context).size;
 
   QualityVideo currentQuality = QualityVideo.AUTO;
-
+  StateErrorPlayer _stateErrorPlayer = StateErrorPlayer.none;
   void printLog(log) {
     if (widget.showLog) {
       final isPlaying = (_videoController?.value?.isPlaying ?? false)
@@ -202,8 +204,20 @@ class _YoYoPlayerState extends State<YoYoPlayer>
   }
 
   @override
+  void didUpdateWidget(covariant YoYoPlayer oldWidget) {
+    if (widget.key != oldWidget.key) {
+      setState(() {
+        _stateErrorPlayer = StateErrorPlayer.none;
+        _statePlayer = StatePlayer.unknown;
+      });
+    }
+    super.didUpdateWidget(oldWidget);
+  }
+
+  @override
   void initState() {
     super.initState();
+    _statePlayer = StatePlayer.unknown;
     printLog("-----------> initState <-----------");
     // getsub();
     currentQuality = widget.quality;
@@ -258,8 +272,11 @@ class _YoYoPlayerState extends State<YoYoPlayer>
   }
 
   final Map<String, Function> listEventListener = {};
+  StatePlayer _statePlayer;
   void exportEventPlayer() {
     printLog("-----------> exportEventPlayer <-----------");
+
+    widget.event.statePlayer = () => _statePlayer;
     widget.event.showOptionQuality = (ct) => showOptionQuality(ct);
 
     widget.event
@@ -271,9 +288,9 @@ class _YoYoPlayerState extends State<YoYoPlayer>
       createHideControlbarTimer();
       playVideo();
     };
-    widget.event.pause = () {
+    widget.event.pause = () async {
       createHideControlbarTimer();
-      pauseVideo();
+      await pauseVideo();
     };
 
     widget.event.isPlaying = () => _videoController?.value?.isPlaying ?? false;
@@ -781,13 +798,30 @@ class _YoYoPlayerState extends State<YoYoPlayer>
   }
 
   void listener() async {
+    if (_videoController?.value?.initialized ?? false) {
+      if (_videoController.value.isPlaying) {
+        _statePlayer = StatePlayer.running;
+      } else {
+        _statePlayer = StatePlayer.stop;
+      }
+    }
     printLog("-----------> listener <-----------");
     if ((_videoController?.value?.hasError ?? false) || checkFreezingApp()) {
       timeHasErrorListenner ??=
           Timer(const Duration(milliseconds: 3000), () async {
-        widget.refeshPlayer?.call(getKeyRefesh, checkFreezingApp());
-        countFree = 0;
-        timeHasErrorListenner = null;
+        pauseVideo();
+        if (_statePlayer == StatePlayer.stop) {
+          if (_stateErrorPlayer == StateErrorPlayer.none) {
+            _stateErrorPlayer = StateErrorPlayer.running;
+
+            Future.delayed(const Duration(seconds: 3), () {
+              widget.refeshPlayer
+                  ?.call("from-ERROR:$getKeyRefesh", checkFreezingApp());
+            });
+            countFree = 0;
+            timeHasErrorListenner = null;
+          }
+        }
       });
     }
     if (isStopListener && !(_videoController.value.isPlaying ?? true)) return;
@@ -875,7 +909,15 @@ class _YoYoPlayerState extends State<YoYoPlayer>
   }
 
   void videoInit(String url) {
-    printLog("-----------> videoInit <-----------");
+    printLog("-----------> videoInit <----------- $queueVideoInit");
+
+    printLog("-----------> videoInit [${DateTime.now()}] ${widget.url}");
+    if (queueVideoInit > 5) {
+      return;
+    }
+    _stateErrorPlayer = StateErrorPlayer.none;
+    _statePlayer = StatePlayer.init;
+    queueVideoInit++;
     if (offline == false) {
       printLog(
           "--- Player Status ---\nplay url : $url\noffline : $offline\n--- start playing –––");
@@ -885,29 +927,50 @@ class _YoYoPlayerState extends State<YoYoPlayer>
             VideoPlayerController.network(url, formatHint: VideoFormat.dash)
               ..setLooping(widget.isLooping)
               ..initialize().then((value) {
+                _statePlayer = StatePlayer.running;
                 pauseVideo();
                 widget.onInitCompleted?.call(_videoController);
+                queueVideoInit--;
+              }).catchError((onError) {
+                queueVideoInit--;
+                _statePlayer = StatePlayer.stop;
               });
       } else if (playtype == "HLS") {
         _videoController =
             VideoPlayerController.network(url, formatHint: VideoFormat.hls)
               ..setLooping(widget.isLooping)
               ..initialize().then((_) {
+                _statePlayer = StatePlayer.running;
+                queueVideoInit--;
                 widget.onInitCompleted?.call(_videoController);
                 setStateMounted(() => hasInitError = false);
+                printLog("-----------> videoInit : Success");
               }).catchError((e) {
+                _statePlayer = StatePlayer.stop;
                 hasInitError = true;
-                widget.refeshPlayer?.call(getKeyRefesh, checkFreezingApp());
+                queueVideoInit--;
+                printLog("-----------> videoInit ERROR");
+                if (_stateErrorPlayer == StateErrorPlayer.none) {
+                  _stateErrorPlayer = StateErrorPlayer.init;
+                  Future.delayed(const Duration(seconds: 3), () {
+                    widget.refeshPlayer
+                        ?.call("fromINIT-HLS:$getKeyRefesh", true);
+                  });
+                }
               });
       } else {
         _videoController =
             VideoPlayerController.network(url, formatHint: VideoFormat.other)
               ..setLooping(widget.isLooping)
               ..initialize().then((value) {
+                queueVideoInit--;
+                _statePlayer = StatePlayer.running;
                 widget.onInitCompleted?.call(_videoController);
                 setStateMounted(() => hasInitError = false);
               }).catchError((e) {
-                widget.refeshPlayer?.call(getKeyRefesh, checkFreezingApp());
+                queueVideoInit--;
+                _statePlayer = StatePlayer.stop;
+                // widget.refeshPlayer?.call(getKeyRefesh, checkFreezingApp());
                 setStateMounted(() => hasInitError = true);
               });
       }
@@ -917,9 +980,13 @@ class _YoYoPlayerState extends State<YoYoPlayer>
       _videoController = VideoPlayerController.file(File(url))
         ..setLooping(widget.isLooping)
         ..initialize().then((value) {
+          queueVideoInit--;
+          _statePlayer = StatePlayer.running;
           widget.onInitCompleted?.call(_videoController);
           setStateMounted(() => hasInitError = false);
         }).catchError((e) {
+          queueVideoInit--;
+          _statePlayer = StatePlayer.stop;
           widget.refeshPlayer?.call(getKeyRefesh, checkFreezingApp());
           setStateMounted(() => hasInitError = true);
         });
@@ -981,14 +1048,23 @@ class _YoYoPlayerState extends State<YoYoPlayer>
     // _videoController.addListener(listener);
   }
 
-  void pauseVideo() {
+  Future<void> pauseVideo() async {
     if (_videoController?.value?.initialized ?? false) {
       printLog("-------> Pause Video");
       if (_videoController.value.buffered?.isEmpty ?? true) {
         printLog("-------> Pause Video => refeshPlayer");
-        widget.refeshPlayer?.call(getKeyRefesh, true);
+
+        await _videoController?.pause?.call();
+        if (_stateErrorPlayer == StateErrorPlayer.none) {
+          _stateErrorPlayer = StateErrorPlayer.stop;
+          if (_statePlayer == StatePlayer.stop) {
+            Future.delayed(const Duration(seconds: 3), () {
+              widget.refeshPlayer?.call("from-PAUSE:$getKeyRefesh", true);
+            });
+          }
+        }
       } else {
-        _videoController.pause();
+        await _videoController?.pause?.call();
       }
     }
   }
