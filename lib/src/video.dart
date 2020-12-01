@@ -125,7 +125,7 @@ class YoYoPlayer extends StatefulWidget {
     this.onChangeQuality,
     this.refeshPlayer,
     this.autoPlay = false,
-    this.limitFreezingWillRefesh = 4,
+    this.limitFreezingWillRefesh = 3,
     this.maxHeight,
     this.minHeight,
     this.aspectRatio,
@@ -345,7 +345,7 @@ class _YoYoPlayerState extends State<YoYoPlayer>
   }
 
   double get getAspectRatio =>
-      widget.aspectRatio ?? (_videoController?.value?.aspectRatio ?? 1);
+      _videoController?.value?.aspectRatio ?? (widget.aspectRatio ?? 1);
   @override
   Widget build(BuildContext context) {
     if (_videoController?.value?.initialized ?? false) {
