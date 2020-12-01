@@ -1053,11 +1053,10 @@ class _YoYoPlayerState extends State<YoYoPlayer>
       printLog("-------> Pause Video");
       if (_videoController.value.buffered?.isEmpty ?? true) {
         printLog("-------> Pause Video => refeshPlayer");
-
-        await _videoController?.pause?.call();
+        _videoController?.pause?.call();
         if (_stateErrorPlayer == StateErrorPlayer.none) {
           _stateErrorPlayer = StateErrorPlayer.stop;
-          if (_statePlayer == StatePlayer.stop) {
+          if (_statePlayer == StatePlayer.stop || checkFreezingApp()) {
             Future.delayed(const Duration(seconds: 3), () {
               widget.refeshPlayer?.call("from-PAUSE:$getKeyRefesh", true);
             });
